@@ -1,136 +1,98 @@
 # Tinolandia Proxy Wars™
 
-A Risk-inspired, single-player geopolitics game. Pick **any country in the world** (234, from Worldometer's 2026 population table), face **9 configurable NPC commanders**, and conquer all 10 nations to win.
+A Risk-inspired, single-player geopolitical strategy game. Pick any country in the world (234 countries, from Worldometer's 2026 population table), face 9 NPC commanders, and conquer all 10 nations to win.
 
-🔗 **Live on Vercel:** https://tinolandia-proxy-wars-update.vercel.app  
-📁 **Source:** https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update
-
-**Stack:** Next.js (App Router) · TypeScript · Tailwind · Firebase Authentication · Cloud Firestore · Firebase Admin SDK · optional Groq LLM battle commentary
+🔗 **Live app:** https://tinolandia-proxy-wars-update.vercel.app  
+📁 **Source:** https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update  
 
 ---
 
-## 1. Run it locally
+## How the app runs
 
-You need [Node.js 20.9+](https://nodejs.org). In a terminal, inside this folder:
+### Deployed version (Vercel)
+The app is deployed on Vercel and accessible at the live URL above. No installation required — open the link in any modern browser.
+
+- **Login/Register:** Create an account with email/password, or sign in with Google.
+- **Play:** Start a game, pick a nation, and take turns against 9 AI commanders.
+- **Spectate:** Share your game link — anyone can watch the board update in real time. Only the game owner can play turns.
+
+### Run locally
+To run the app on your own machine:
+
+**Requirements:** Node.js 20.9+
 
 ```powershell
+# 1. Install dependencies
 npm install
-copy .env.example .env.local   # then fill in .env.local (step 2 and 3 below)
+
+# 2. Configure environment
+copy .env.example .env.local   # then fill in the values below
+
+# 3. Start the dev server
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
----
+### Environment variables (`.env.local`)
 
-## 2. Firebase setup (console.firebase.google.com → your project)
+| Variable | Purpose | Required? |
+|---|---|---|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web app config | Yes (defaults work for `tinolandia---geopolotics`) |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain | Yes |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID | Yes |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | Yes |
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Firebase service account email | Yes — for server writes |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Firebase service account private key | Yes — for server writes |
+| `GROQ_API_KEY` | Groq LLM key for AI commentary | Optional (template fallback used if missing) |
+| `GROQ_MODEL` | Groq model name | Optional (defaults to `openai/gpt-oss-20b`) |
 
-1. **Authentication → Sign-in method:** enable **Email/Password** and **Google**.
-2. **Firestore Database:** create a database (Native mode).
-3. **Firestore → Rules:** paste [`firestore.rules`](firestore.rules) and click **Publish**.  
-   (Public read for shared links; no browser writes — only the server can write.)
-4. **Project settings → Service accounts → Generate new private key.** Open the `.json` and copy  
-   `client_email` → `FIREBASE_ADMIN_CLIENT_EMAIL` and `private_key` → `FIREBASE_ADMIN_PRIVATE_KEY`  
-   into `.env.local` (keep the `\n` characters and quotes). **Never commit this file.**
-
----
-
-## 3. Groq key (optional AI battle commentary)
-
-Create a key at https://console.groq.com/keys and set `GROQ_API_KEY` in `.env.local`.  
-Without it, the game still works — it falls back to built-in template commentary.  
-`GROQ_MODEL` defaults to `openai/gpt-oss-20b`.
+Get `FIREBASE_ADMIN_CLIENT_EMAIL` and `FIREBASE_ADMIN_PRIVATE_KEY` from Firebase Console → Project Settings → Service Accounts → Generate new private key.
 
 ---
 
-## 4. Deploy to Vercel
+## How to play
 
-**Via GitHub (recommended):**
+1. **Sign in** with email/password or Google.
+2. **Start a game:** Pick your country from the world list (search or random). 9 NPC rivals are drawn automatically.
+3. **Take your turn:** Each round you may transfer soldiers, launch one attack, or skip. From round 2, you also deploy 2 reinforcements per country you control.
+4. **Combat:** Dice-based battles — attacker rolls (attacker−1 dice), defender rolls (defender dice). Higher die wins each pairing; ties kill nobody. Keep rolling until you conquer, fall to 1 soldier, or stop.
+5. **Win:** Conquer all 10 nations. Lose all your countries and you're eliminated.
+6. **Watch live:** Copy your game URL and share it — visitors see the board update in real time as turns play out.
 
-```powershell
-git init
-git add .
-git commit -m "Tinolandia geopolitics"
+---
+
+## Project structure
+
 ```
-
-1. Create an empty repo on GitHub and push to it.
-2. On https://vercel.com → **Add New → Project → Import** the repo (Next.js auto-detected).
-3. Before deploying, open **Project Settings → Environment Variables** and add:
-   - `FIREBASE_ADMIN_CLIENT_EMAIL`
-   - `FIREBASE_ADMIN_PRIVATE_KEY`
-   - `GROQ_API_KEY`
-   - `GROQ_MODEL`
-4. Click **Deploy**. Copy the `https://….vercel.app` URL.
-5. Firebase console → **Authentication → Settings → Authorized domains** → add your `….vercel.app` host (needed for Google sign-in).
-
-**CLI alternative:** `npm i -g vercel`, `vercel login`, `vercel link --repo`, then `vercel deploy --prod`.
-
----
-
-## 5. How it meets the brief
-
-| Requirement | Where |
-|---|---|
-| Pick any country; 9 NPC rivals | `components/CountryPicker.tsx`, `lib/engine.ts → createGame` |
-| Soldiers from population table | `lib/rules.ts → soldiersFromPopulation` |
-| Random first player, rounds, +2/country from round 2 | `lib/engine.ts` (`beginTurn`, `advanceTurn`) |
-| One attack + transfers per turn | `doStartAttack`, `doTransfer` |
-| Dice: `min(attacker−1, defender)`, die-vs-die, ties kill nobody | `lib/rules.ts → resolveRound` |
-| Conquest bonus `Max(2, ⌊value/2⌋)` | `conquestBonus`, `POST_ATTACK` phase |
-| Elimination / win at 10/10 | `afterConquest` |
-| NPC turns with AI decisions | `lib/npc.ts`, `lib/npcProfiles.ts`, `app/commanders/page.tsx` |
-| Live board, campaign map, dice, results | `Board`, `CampaignMap`, `BattleArena` |
-| Shareable campaign links, live spectating | `CampaignShare`, real-time WebSocket/firestore updates |
-| Saved timeline with replay | `CampaignReplay` |
-| 5-level armour models (breastplate, Chalcidian) | `SoldierKitPicker`, `public/assets/armor/` |
-| Guided tutorial mini-game | `app/tutorial/page.tsx` |
-| Privacy notice acknowledgement per account | `app/privacy/page.tsx`, `app/api/privacy/acknowledge/route.ts` |
-| LLM commentary (Groq + template fallback) | `lib/commentary.ts` |
-| Server-authoritative dice (anti-cheat) | `app/api/game/action/route.ts` |
-| Firestore + deployed | Cloud Firestore, Vercel |
-
-**NPC strategy:** scores every (own → enemy) country pair using exact conquest probability (dynamic programming over dice rules) plus payoff (territory gained, armies destroyed, rival eliminated). Difficulty adjusts the odds threshold; personality tunes attack/withdraw behaviour.
-
-**Bonus:** anti-cheating (dice rolled only server-side, every change a transaction) + share a URL to let anyone watch live.
-
----
-
-## 6. Tests (no Firebase needed)
-
-```powershell
-npm run simulate   # hundreds of full games, checking invariants every step
-npm run test:api   # real API routes against in-memory Firestore
+app/                    Next.js App Router pages + API routes (/api/game/create, /api/game/action)
+components/             React UI components (CountryPicker, Board, BattleArena, Controls, EventFeed, etc.)
+lib/rules.ts            Dice, population, conquest rules, and win-probability math
+lib/engine.ts           Game state machine (pure logic, no I/O)
+lib/npc.ts              NPC AI brain — scores targets using exact conquest probability
+lib/commentary.ts       Groq LLM + template battle commentary
+lib/server/             Firebase Admin SDK + request auth (server-side only)
+firestore.rules         Security rules (public read, server-only write)
+scripts/                Game simulation and API tests
 ```
 
 ---
 
-## 7. Project layout
+## Architecture notes
 
-```
-app/                    pages + API routes (/api/game/create, /api/game/action)
-components/             UI (picker, board, battle arena, controls, event feed)
-lib/rules.ts            dice / population / conquest rules + win probability
-lib/engine.ts           game state machine (pure, no I/O)
-lib/npc.ts              NPC brain
-lib/commentary.ts       Groq + template commentary
-lib/server/             Firebase Admin + request auth (server only)
-firestore.rules         security rules
-scripts/                simulation + API tests
-```
+- **Server-authoritative:** All dice rolls and state changes happen on the server in a single Firestore transaction. The browser cannot edit soldiers or re-roll battles.
+- **NoSQL:** Game state and events are stored in Cloud Firestore.
+- **Real-time:** Game pages stream updates via Firestore listeners so spectators see moves live.
+- **Auth:** Firebase Authentication (email/password + Google). Firebase ID tokens are verified server-side on every API call.
 
 ---
 
-## 8. Troubleshooting
+## Deployment
 
-| Symptom | Fix |
-|---|---|
-| "Could not find the Next.js package" | Run `npm install` inside this project folder (the one with `package.json`). |
-| "Server is not configured…" | `FIREBASE_ADMIN_*` vars missing (`.env.local` locally, Vercel env vars live). Restart / redeploy. |
-| "Could not read this game" | Publish `firestore.rules` (step 2). |
-| Google sign-in: "unauthorized domain" | Add your domain under Authentication → Settings → Authorized domains. |
-| "operation-not-allowed" | Enable that sign-in method in Firebase Authentication. |
-| Commentary is plain, not AI | `GROQ_API_KEY` missing or invalid; gameplay is unaffected. |
+The app is deployed on Vercel. To redeploy after changes:
+
+1. Commit and push to `main` on GitHub.
+2. Vercel auto-detects the Next.js project and rebuilds/deploys automatically.
+3. Ensure the 4 Firebase/Groq env vars are set in **Vercel Project Settings → Environment Variables**.
 
 ---
-
-**Free-tier note:** a full game writes ~700 Firestore documents; the Spark free plan allows 20,000 writes/day (~25+ games/day).
