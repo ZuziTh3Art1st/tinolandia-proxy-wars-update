@@ -1,0 +1,8 @@
+World campaign map boundaries
+=============================
+
+Country boundaries are from Natural Earth, ne_110m_admin_0_countries.geojson.
+Natural Earth vector data is in the public domain.
+Source: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/110m-admin-0-countries/
+
+Country markers and dotted leaders are game indicators. They show campaign troops and positions, not population or real military deployments.

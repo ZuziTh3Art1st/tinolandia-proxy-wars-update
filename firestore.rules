@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Games are PUBLIC to read (so a shared link can be watched live by anyone),
+    // but NO client can write. All writes happen on the server via the Admin SDK,
+    // which is what stops anyone editing soldiers/dice from the browser console.
+    match /games/{gameId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /events/{eventId} {
+        allow read: if true;
+        allow write: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

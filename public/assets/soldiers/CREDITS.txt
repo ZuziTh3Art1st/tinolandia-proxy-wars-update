@@ -1,0 +1,7 @@
+In-game soldier formation sprites
+=================================
+
+Based on the Soldier idle animation from Tiny RPG Character Asset Pack 01 v2.0 by Zerie.
+Source and license: https://zerie.itch.io/tiny-rpg-character-asset-pack
+
+Used as character art in the game interface under the pack's game-project terms. The original pack and its other files are not included here.
