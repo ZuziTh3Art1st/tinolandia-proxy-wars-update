@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { GameState, HumanAction } from '@/lib/types';
@@ -19,11 +19,11 @@ interface Props {
   setDeploySelected: (c: string | null) => void;
 }
 
-const btn = 'rounded-md px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45';
+const btn = 'rounded-lg px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45 min-h-[44px]';
 const primary = `${btn} bg-[var(--accent)] text-white hover:bg-[var(--accent-dark)]`;
 const ghost = `${btn} border border-[var(--line)] bg-white text-[var(--ink)] hover:bg-[#f1f3f2]`;
 const danger = `${btn} border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100`;
-const select = 'w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none';
+const select = 'w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none min-h-[44px]';
 
 // ---------------------------------------------------------------------------
 function DeployPanel({ game, act, busy, selected, onSelect }: Pick<Props, 'game' | 'act' | 'busy'> & { selected: string | null; onSelect: (code: string | null) => void }) {
@@ -46,13 +46,13 @@ function DeployPanel({ game, act, busy, selected, onSelect }: Pick<Props, 'game'
             <span className="min-w-0 flex-1 truncate font-bold">{c.name}</span>
             <span className="text-[var(--muted-ink)]">{c.soldiers}</span>
             <span className="w-8 text-center font-semibold text-emerald-800">{alloc[c.code] ? `+${alloc[c.code]}` : ''}</span>
-            <button className="h-7 w-7 rounded border border-[var(--line)] bg-white font-semibold hover:bg-[#eef1f0] disabled:opacity-30" disabled={!alloc[c.code]} onClick={() => set(c.code, (alloc[c.code] || 0) - 1)}>
+            <button className="h-8 w-8 rounded border border-[var(--line)] bg-white font-semibold hover:bg-[#eef1f0] disabled:opacity-30 min-h-[40px]" disabled={!alloc[c.code]} onClick={() => set(c.code, (alloc[c.code] || 0) - 1)}>
               −
             </button>
-            <button className="h-7 w-7 rounded border border-[var(--line)] bg-white font-semibold hover:bg-[#eef1f0] disabled:opacity-30" disabled={left <= 0} onClick={() => set(c.code, (alloc[c.code] || 0) + 1)}>
+            <button className="h-8 w-8 rounded border border-[var(--line)] bg-white font-semibold hover:bg-[#eef1f0] disabled:opacity-30 min-h-[40px]" disabled={left <= 0} onClick={() => set(c.code, (alloc[c.code] || 0) + 1)}>
               +
             </button>
-            <button className="rounded border border-[var(--line)] bg-white px-2 text-[10px] font-semibold hover:bg-[#eef1f0] disabled:opacity-30" disabled={left <= 0} onClick={() => set(c.code, (alloc[c.code] || 0) + left)}>
+            <button className="rounded border border-[var(--line)] bg-white px-2 text-[10px] font-semibold hover:bg-[#eef1f0] disabled:opacity-30 min-h-[40px]" disabled={left <= 0} onClick={() => set(c.code, (alloc[c.code] || 0) + left)}>
               all
             </button>
           </li>
@@ -197,7 +197,7 @@ export function Controls(props: Props) {
     <div className="space-y-5">
       <section className="space-y-2">
         <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-ink)]">Attack (one per turn)</h3>
-        <p className="text-[11px] text-slate-500">Tip: click your country, then an enemy country on the board.</p>
+        <p className="text-[11px] text-slate-500">Tip: tap your country, then tap an enemy country on the map.</p>
         <div className="grid grid-cols-2 gap-2">
           <select className={select} value={selSource ?? ''} onChange={(e) => setSelSource(e.target.value || null)}>
             <option value="">Attack from…</option>

@@ -14,7 +14,9 @@ import { PlayersPanel } from "@/components/game/PlayersPanel";
 import { CampaignMap } from "@/components/game/CampaignMap";
 import { CampaignShare } from "@/components/game/CampaignShare";
 import { Flag } from "@/components/Flag";
-import { SoldierKitPicker } from "@/components/game/SoldierKitPicker";
+import { AchievementsBoard } from "@/components/game/AchievementsBoard";
+import { Leaderboard } from "@/components/game/Leaderboard";
+import { recordCampaignResult } from "@/lib/leaderboard";
 
 const panel = "rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[0_2px_10px_rgba(28,45,46,.035)] sm:p-5";
 
@@ -65,6 +67,19 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
       .sort((a, b) => b.level - a.level || b.experience - a.experience);
   }, [events, game, veteranFilter]);
 
+  // Record game result when campaign ends
+  useEffect(() => {
+    if (!game || game.status !== "FINISHED" || !user || !user.uid) return;
+    const human = game.players.find((p) => p.id === "player");
+    if (!human) return;
+    // Record once per game end (use version to avoid double-recording)
+    const key = `recorded_${gameId}`;
+    if (window.sessionStorage.getItem(key)) return;
+    recordCampaignResult(game, human.name, user.uid).then(() => {
+      window.sessionStorage.setItem(key, "1");
+    });
+  }, [game, user, gameId]);
+
   useEffect(() => {
     if (!game || game.status !== "ACTIVE" || !isOwner || isHumanTurn || busy || status !== "ready") return;
     const timer = window.setTimeout(() => { void act({ type: "NPC_STEP" }, true); }, 700);
@@ -104,7 +119,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1"><p className="eyebrow">ROUND {game.round}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-ink)]">{game.phase.replaceAll("_", " ")}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-sm text-[var(--ink)]">{turnPlayer?.name ?? "Campaign complete"}{turnPlayer?.kind === "human" ? " · your turn" : " · rival turn"}</p></div>
         <div className="flex flex-wrap items-center gap-3"><p className="text-xs text-[var(--muted-ink)]">{game.countries.length} nations · {game.players.filter((p) => !p.eliminated).length} commanders active</p><button type="button" role="switch" aria-checked={showCommentary} onClick={toggleCommentary} className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${showCommentary ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-slate-300 bg-slate-100 text-slate-600"}`}>Commentary {showCommentary ? "on" : "off"}</button></div>
       </section>
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,.85fr)]">
+      <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.45fr)_minmax(340px,.9fr)]">
         <div className="space-y-4">
           <section className={panel}>
             <div className="mb-3 flex items-center justify-between gap-3"><div><p className="eyebrow">WORLD CAMPAIGN MAP</p><h2 className="section-title mt-1">Territory control</h2></div><span className="text-xs text-[var(--muted-ink)]">{isHumanTurn && game.phase === "ACTION" ? "Select your force, then a target" : isHumanTurn && game.phase === "REINFORCE" ? "Select one of your countries to deploy" : "Live positions"}</span></div>
@@ -131,13 +146,15 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
               <section className={panel}><p className="eyebrow mb-2">COMMANDERS</p><PlayersPanel game={game} isOwner={isOwner} /></section>
               <section className={panel}>
                 <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="eyebrow">FIELD EXPERIENCE</p><h2 className="mt-1 text-sm font-semibold">Veteran formations</h2></div><label className="sr-only" htmlFor="veteran-rank-filter">Filter by formation level</label><select id="veteran-rank-filter" value={veteranFilter} onChange={(event) => setVeteranFilter(event.target.value)} className="rounded border border-[var(--line)] bg-white px-2 py-1.5 text-[11px]"><option value="all">All levels</option><option value="0">New formation</option><option value="1">Field tested</option><option value="2">Veteran</option><option value="3">Elite</option></select></div>
-                <p className="mt-2 text-[11px] leading-5 text-[var(--muted-ink)]">Formations earn a field rank for every three battle rounds they take part in. Use the level selector to review them. Ranks are campaign records and do not change the exam’s dice rules.</p>
+                <p className="mt-2 text-[11px] leading-5 text-[var(--muted-ink)]">Formations earn a field rank for every three battle rounds they take part in. Use the level selector to review them. Ranks are campaign records and do not change the exam's dice rules.</p>
                 {veteranRecords.length ? <ul className="mt-3 space-y-2">{veteranRecords.slice(0, 6).map(({ country, experience, level, rank }) => <li key={country.code} className="flex items-center gap-2 rounded-md border border-[var(--line)] bg-white px-2.5 py-2"><Flag code={country.code} size={40} className="h-4 w-6 shrink-0"/><span className="min-w-0 flex-1 truncate text-xs font-medium">{country.name}</span><span className="text-[10px] text-[var(--muted-ink)]">{experience} rounds</span><span className="rounded-full bg-[#eef3f0] px-2 py-1 text-[9px] font-semibold text-[var(--accent-dark)]">Lv {level} · {rank}</span></li>)}</ul> : <p className="mt-3 rounded-md bg-[#f7f8f7] px-3 py-2.5 text-xs text-[var(--muted-ink)]">Formation records appear after your first battle round.</p>}
               </section>
-              <SoldierKitPicker />
+              <AchievementsBoard />
               <CampaignShare campaignId={gameId}/>
             </div>
           </details>
+          {/* Leaderboard on mobile (stacked below) and desktop (right side on larger screens) */}
+          <Leaderboard />
         </aside>
       </div>
     </div>
