@@ -12,6 +12,32 @@
   --accent: #1800ad;
   --accent-dark: #11007d;
   --accent-soft: #1800ad;
+  --color-background: #f3f4f2;
+  --color-background-rgb: 243 244 242;
+  --color-foreground: #293436;
+  --color-foreground-rgb: 41 52 54;
+  --color-muted: #e9edeb;
+  --color-muted-rgb: 233 237 235;
+  --color-muted-foreground: #657174;
+  --color-muted-foreground-rgb: 101 113 116;
+  --color-card: #ffffff;
+  --color-card-rgb: 255 255 255;
+  --color-card-foreground: #293436;
+  --color-card-foreground-rgb: 41 52 54;
+  --color-border: #d9dfde;
+  --color-border-rgb: 217 223 222;
+  --color-ring: #1800ad;
+  --color-ring-rgb: 24 0 173;
+  --color-chart-1: #1800ad;
+  --color-chart-1-rgb: 24 0 173;
+  --color-chart-2: #5288a8;
+  --color-chart-2-rgb: 82 136 168;
+  --color-chart-3: #6e9e83;
+  --color-chart-3-rgb: 110 158 131;
+  --color-chart-4: #b4665a;
+  --color-chart-4-rgb: 180 102 90;
+  --color-chart-5: #a88a67;
+  --color-chart-5-rgb: 168 138 103;
 }
 
 * { box-sizing: border-box; }

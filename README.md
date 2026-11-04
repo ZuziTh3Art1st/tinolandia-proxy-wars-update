@@ -31,7 +31,7 @@ A Risk-inspired, single-player geopolitical strategy game. Pick any country in t
 | Authentication | Firebase Authentication (email/password + Google) |
 | Database | Cloud Firestore (NoSQL) |
 | Server SDK | Firebase Admin SDK |
-| AI commentary | Groq LLM (optional — template fallback if no API key) |
+| AI commentary | Groq LLM (server-side key; built-in field reports remain as fallback) |
 | Hosting | Vercel (serverless functions) |
 
 ---
@@ -72,7 +72,7 @@ scripts/                Game simulation (invariant checks) and API route tests
 | Sign-in fails with "could not record privacy notice" | Server lacks `FIREBASE_ADMIN_*` credentials. They are set in **Vercel Project Settings → Environment Variables**. |
 | Google sign-in: "unauthorized domain" | Add `tinolandia-proxy-wars-update.vercel.app` to Firebase Console → Authentication → Settings → Authorized domains. |
 | Game page won't load / "Could not read this game" | Firestore rules not published, or invalid game ID. |
-| Commentary is plain text, not AI | `GROQ_API_KEY` is missing or invalid in Vercel env vars. Gameplay is unaffected. |
+| Commentary is plain text, not AI | Open `/commentary` to check whether `GROQ_API_KEY` is configured in the deployed environment. Add it in Vercel Project Settings → Environment Variables and redeploy. Gameplay keeps built-in field reports if Groq is unavailable. |
 | "Server is not configured" error | `FIREBASE_ADMIN_CLIENT_EMAIL` / `FIREBASE_ADMIN_PRIVATE_KEY` missing from Vercel env vars. |
 | Changes not appearing after pushing to GitHub | Vercel auto-deploys on push to `main`; check the Vercel dashboard deploy logs. |
 

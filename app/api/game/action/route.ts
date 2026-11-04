@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { applyHumanAction, GameError, npcStep } from '@/lib/engine';
 import { aiCommentary } from '@/lib/commentary';
 import { adminDb } from '@/lib/server/firebaseAdmin';
@@ -15,7 +15,7 @@ export const maxDuration = 30;
  *  2. checks the caller OWNS this game (visitors can watch, never play),
  *  3. runs the rules engine (dice are rolled here, never in the browser),
  *  4. saves state + events in one transaction (so refreshing / closing the browser cannot undo an attack),
- *  5. then upgrades the battle commentary with the LLM.
+ *  5. then upgrades the battle commentary with the LLM after returning the move.
  */
 export async function POST(req: Request) {
   try {
@@ -25,7 +25,6 @@ export async function POST(req: Request) {
     const gameId: string = typeof body.gameId === 'string' ? body.gameId : '';
     const action = body.action as GameAction | undefined;
     const expectedVersion: number | undefined = typeof body.expectedVersion === 'number' ? body.expectedVersion : undefined;
-    const fast = body.fast === true;
     if (!gameId || !action || typeof action.type !== 'string') throw new GameError('Bad request.');
 
     const db = adminDb();
@@ -51,23 +50,20 @@ export async function POST(req: Request) {
       version = next.version;
     });
 
-    // Upgrade template narration with Groq. During fast-forward only decisive moments
-    // (conquest / failed attack) call the model, so fast-forward stays fast.
-    const toNarrate = newEvents.filter(
-      (e) => e.battle && (!fast || e.kind === 'CONQUEST' || e.kind === 'ATTACK_FAILED')
-    );
-    await Promise.all(
-      toNarrate.map(async (e) => {
-        const text = await aiCommentary(e.battle!);
-        if (text) {
-          await ref
-            .collection('events')
-            .doc(eventDocId(e.seq))
+    // Every battle round gets an AI attempt. `after` keeps the game action
+    // responsive while the updated commentary arrives through the live listener.
+    const toNarrate = newEvents.filter((event) => event.battle);
+    if (toNarrate.length) {
+      after(async () => {
+        await Promise.all(toNarrate.map(async (event) => {
+          const text = await aiCommentary(event.battle!);
+          if (!text) return;
+          await ref.collection('events').doc(eventDocId(event.seq))
             .update({ commentary: text, commentarySource: 'ai' })
-            .catch(() => undefined);
-        }
-      })
-    );
+            .catch((err) => console.warn('Could not save Groq commentary:', err));
+        }));
+      });
+    }
 
     return NextResponse.json({ ok: true, version });
   } catch (err) {

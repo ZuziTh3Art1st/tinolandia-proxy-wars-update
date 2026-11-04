@@ -83,7 +83,12 @@ export async function aiCommentary(b: BattleSnapshot, timeoutMs = 4500): Promise
           { role: 'system', content: 'You narrate fictional strategy-game battles in a concise, neutral, human-sounding style.' },
           { role: 'user', content: buildPrompt(b) },
         ],
-        max_completion_tokens: 120,
+        // GPT-OSS spends part of its token budget on reasoning. Keep its effort
+        // low and exclude reasoning so the short narration fits in the budget.
+        ...(model.startsWith('openai/gpt-oss-')
+          ? { reasoning_effort: 'low', include_reasoning: false }
+          : {}),
+        max_completion_tokens: 256,
       }),
       signal: ctrl.signal,
     });

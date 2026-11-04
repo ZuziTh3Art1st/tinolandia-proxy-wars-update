@@ -26,7 +26,8 @@ export function BattleArena({ game, events = [], showCommentary = true, compact 
   if (!battle) return <div className={`rounded-md border border-dashed border-[var(--line)] bg-[#f8f9f8] px-4 text-center ${compact ? "py-4" : "py-8"}`}><p className="text-sm font-medium text-[var(--ink)]">No battle has been resolved yet</p><p className="mt-1 text-xs text-[var(--muted-ink)]">When a battle takes place, its forces, dice and losses will appear here.</p></div>;
 
   const live = !!game.attack && game.phase === "ATTACKING";
-  const commentary = events.find((event) => event.battle?.seq === battle.seq)?.commentary;
+  const commentaryEvent = events.find((event) => event.battle?.seq === battle.seq);
+  const commentary = commentaryEvent?.commentary;
   const dicePairs = battle.attackerDice.map((attacker, index) => ({ attacker, defender: battle.defenderDice[index] })).filter((pair): pair is { attacker: number; defender: number } => typeof pair.defender === "number");
   const result = live ? "In progress" : battle.conquered ? "Territory conquered" : battle.failed ? "Attack repelled" : "Battle resolved";
   const outcomeTone = live ? "border-sky-200 bg-sky-50 text-sky-800" : battle.conquered ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-[var(--line)] bg-white text-[var(--muted-ink)]";
@@ -52,7 +53,7 @@ export function BattleArena({ game, events = [], showCommentary = true, compact 
         </div> : <p className="text-xs text-[var(--muted-ink)]">Dice are shown after the first roll.</p>}
       </div>
 
-      {showCommentary && commentary && <div className="rounded-md border border-[#d9e4df] bg-[#f1f6f3] px-3 py-2.5"><p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-ink)]">Battle commentary</p><p className="mt-1 text-sm leading-5 text-[var(--ink)]">{commentary}</p></div>}
+      {showCommentary && commentary && <div className="rounded-md border border-[#d9e4df] bg-[#f1f6f3] px-3 py-2.5"><p className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-ink)]"><span>Battle commentary</span><span className={commentaryEvent?.commentarySource === "ai" ? "text-emerald-800" : "text-[var(--muted-ink)]"}>{commentaryEvent?.commentarySource === "ai" ? "Groq AI" : "Field report"}</span></p><p className="mt-1 text-sm leading-5 text-[var(--ink)]">{commentary}</p></div>}
     </div>
   );
 }

@@ -120,6 +120,7 @@ export function createGame(opts: {
     ownerUid: opts.ownerUid,
     ownerName: opts.ownerName,
     humanCountry: mine.code,
+    startingCountries: Object.fromEntries(players.map((player, index) => [player.id, chosen[index].code])),
     createdAt: now,
     updatedAt: now,
     status: 'ACTIVE',

@@ -94,6 +94,8 @@ export interface GameState {
   ownerUid: string;
   ownerName: string;
   humanCountry: string;
+  /** Countries each commander started with, keyed by player id. */
+  startingCountries?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
   status: 'ACTIVE' | 'FINISHED';

@@ -62,6 +62,8 @@ export default function HomePage() {
         <nav aria-label="Campaign preparation" className="mb-3 flex flex-wrap items-center gap-2">
           <Link href="/tutorial" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Play the strategy tutorial</Link>
           <Link href="/commanders" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Configure rival commanders</Link>
+          <Link href="/commentary" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">LLM commentary</Link>
+          <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Past playthroughs</Link>
         </nav>
 
         <div className="grid gap-10 py-9 lg:grid-cols-[minmax(0,1fr)_20rem]">
