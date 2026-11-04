@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Waves } from "@/components/Waves";
 
 const steps = ["Briefing", "Reinforce", "Choose a target", "Resolve the battle", "Secure the territory"];
 const pipMap: Record<number, number[]> = { 1: [5], 2: [1,9], 3: [1,5,9], 4: [1,3,7,9], 5: [1,3,5,7,9], 6: [1,3,4,6,7,9] };
@@ -13,6 +14,15 @@ export default function TutorialPage() {
   const targetOdds = target === "Nepal" ? "about 80%" : "about 35%";
   return <main className="min-h-screen px-5 py-8 sm:px-8"><div className="mx-auto max-w-5xl">
     <header className="flex items-center justify-between border-b border-[var(--line)] pb-5"><div><p className="eyebrow">PRACTICE CAMPAIGN · 5 MINUTES</p><h1 className="section-title mt-1 text-2xl">Field briefing</h1></div><Link href="/" className="rounded-md border border-[var(--line)] px-3 py-2 text-sm">Exit tutorial</Link></header>
+    <section aria-label="Tinolandia campaign atmosphere" className="relative isolate my-6 min-h-52 overflow-hidden rounded-xl border border-[#43616a] bg-[#091b22] px-5 py-6 text-white sm:min-h-56 sm:px-8 sm:py-8">
+      <Waves className="opacity-80" strokeColor="rgba(207, 174, 103, .48)" backgroundColor="#091b22" pointerSize={0.6} />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(90deg,rgba(7,25,32,.94)_0%,rgba(7,25,32,.68)_52%,rgba(7,25,32,.2)_100%)]" />
+      <div className="relative z-10 max-w-2xl py-2">
+        <p className="text-[10px] font-semibold uppercase tracking-[.27em] text-[#d2ae67]">A living front line · Cape Town</p>
+        <h2 className="mt-3 font-serif text-3xl tracking-[-.03em] sm:text-4xl">Every move reshapes the map.</h2>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-white/70">A field of shifting borders, rival commanders and calculated risk — created by Ashley Tinotenda Buzuzi.</p>
+      </div>
+    </section>
     <div className="my-6 flex flex-wrap gap-2" aria-label="Tutorial progress">{steps.map((label,index)=><div key={label} className={`rounded-full border px-3 py-1.5 text-xs ${index===step?"border-[var(--accent)] bg-[#f6eee9] font-semibold text-[var(--accent-dark)]":index<step?"border-[#a7c6b6] bg-[#eff6f1] text-[#416c57]":"border-[var(--line)] text-[var(--muted-ink)]"}`}>{String(index+1).padStart(2,"0")} · {label}</div>)}</div>
     <div className="grid items-start gap-5 lg:grid-cols-[1.2fr_.8fr]">
       <section className="rounded-lg border border-[var(--line)] bg-white p-5 sm:p-7">

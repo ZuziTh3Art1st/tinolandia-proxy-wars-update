@@ -58,7 +58,7 @@ export function LoginExperience() {
 
       <section className="flex min-h-[42vh] flex-col justify-center px-6 py-9 sm:px-10 lg:min-h-screen lg:px-14">
         <div className="mx-auto w-full max-w-sm">
-          <Link href="/" className="text-xs text-[var(--muted-ink)] underline-offset-4 hover:text-[var(--ink)] hover:underline">← Back to country selection</Link>
+          <Link href="/tutorial" className="text-xs text-[var(--muted-ink)] underline-offset-4 hover:text-[var(--ink)] hover:underline">Explore the practice briefing →</Link>
           <p className="eyebrow mt-9">COMMANDER ACCESS</p>
           <h2 className="mt-2 font-serif text-3xl text-[var(--ink)]">Enter the campaign</h2>
           <p className="mb-7 mt-2 text-sm leading-6 text-[var(--muted-ink)]">Sign in to continue or create a profile to save your campaign.</p>

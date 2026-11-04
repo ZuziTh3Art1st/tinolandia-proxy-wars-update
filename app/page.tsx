@@ -19,11 +19,15 @@ export default function HomePage() {
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessGranted, setAccessGranted] = useState(false);
 
   const selectedCountry = selectedCode ? getCountryInfo(selectedCode) : undefined;
 
   useEffect(() => {
-    if (!loading && user && window.localStorage.getItem(`tinolandia-privacy-ack-${user.uid}`) !== '2026-10-31-v1') router.replace('/login');
+    if (loading) return;
+    const acknowledged = !!user && window.localStorage.getItem(`tinolandia-privacy-ack-${user.uid}`) === '2026-10-31-v1';
+    setAccessGranted(acknowledged);
+    if (!acknowledged) router.replace('/login');
   }, [loading, router, user]);
 
   useEffect(() => {
@@ -53,6 +57,8 @@ export default function HomePage() {
     }
   };
 
+  if (loading || !accessGranted || !user) return <main className="grid min-h-screen place-items-center bg-[#f3f4f2] px-5"><p className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm text-[var(--muted-ink)]">Opening commander access…</p></main>;
+
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8 lg:px-12">
       <OpeningLogo />
@@ -78,7 +84,6 @@ export default function HomePage() {
               <button type="button" onClick={() => void start()} disabled={!selectedCode || starting || loading} className="rounded-md bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-dark)] disabled:cursor-not-allowed disabled:opacity-45">
                 {starting ? "Preparing campaign…" : selectedCountry ? `Start campaign as ${selectedCountry.name}` : "Select a country to continue"}
               </button>
-              {!user && <span className="text-xs text-[var(--muted-ink)]">Sign in to launch a campaign.</span>}
             </div>
           </section>
 
