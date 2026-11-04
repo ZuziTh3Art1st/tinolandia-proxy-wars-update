@@ -70,7 +70,7 @@ export default function PlaythroughsPage() {
               return <li key={game.id}>
                 <article className="rounded-lg border border-[var(--line)] bg-white p-4 shadow-sm sm:p-5">
                   <div className="flex flex-wrap items-start gap-3">
-                    <Flag code={myCountryCode} size={64} className="h-10 w-14 shrink-0 rounded-sm shadow-sm" />
+                    <Flag code={myCountryCode} size={80} className="h-10 w-14 shrink-0 rounded-sm shadow-sm" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1"><h3 className="text-base font-semibold">{home?.name ?? game.humanCountry}</h3><span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${victory ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-100 text-slate-700"}`}>{victory ? "Victory" : "Defeat"}</span>{game.multiplayer && <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">Multiplayer</span>}</div>
                       <p className="mt-1 text-xs text-[var(--muted-ink)]">Round {game.round} · {game.players.length} commanders · {new Date(game.createdAt).toLocaleDateString()}</p>
