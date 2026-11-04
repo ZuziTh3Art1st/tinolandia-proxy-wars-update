@@ -40,35 +40,6 @@
   --color-chart-5-rgb: 168 138 103;
 }
 
-.dark.site-footer-theme {
-  --color-background: #071920;
-  --color-background-rgb: 7 25 32;
-  --color-foreground: #f2eddf;
-  --color-foreground-rgb: 242 237 223;
-  --color-muted: #102a30;
-  --color-muted-rgb: 16 42 48;
-  --color-muted-foreground: #b4c0ba;
-  --color-muted-foreground-rgb: 180 192 186;
-  --color-card: #0c252b;
-  --color-card-rgb: 12 37 43;
-  --color-card-foreground: #f2eddf;
-  --color-card-foreground-rgb: 242 237 223;
-  --color-border: #315057;
-  --color-border-rgb: 49 80 87;
-  --color-ring: #d2ae67;
-  --color-ring-rgb: 210 174 103;
-  --color-chart-1: #d2ae67;
-  --color-chart-1-rgb: 210 174 103;
-  --color-chart-2: #77b3ba;
-  --color-chart-2-rgb: 119 179 186;
-  --color-chart-3: #78a98a;
-  --color-chart-3-rgb: 120 169 138;
-  --color-chart-4: #cb796a;
-  --color-chart-4-rgb: 203 121 106;
-  --color-chart-5: #9c8dd1;
-  --color-chart-5-rgb: 156 141 209;
-}
-
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--background); }
 body {
@@ -122,7 +93,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .dr-grain { z-index: 3; opacity: .11; background-image: radial-gradient(rgba(255,255,255,.48) .5px, transparent .8px); background-size: 5px 5px; }
 .login-data-rain { z-index: 0; }
 .waves-component .a__line { stroke-opacity: .68; }
-.site-footer [data-slot="sushi-conveyor-menu"] { color-scheme: dark; }
 @media (prefers-reduced-motion: reduce) {
   .map-route, .map-pulse { animation: none; }
 }

@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
-  darkMode: 'class',
   theme: { extend: { colors: {
     background: 'rgb(var(--color-background-rgb) / <alpha-value>)',
     foreground: 'rgb(var(--color-foreground-rgb) / <alpha-value>)',

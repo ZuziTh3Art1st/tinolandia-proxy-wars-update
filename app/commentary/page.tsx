@@ -31,7 +31,7 @@ export default function CommentaryPage() {
         </section>
 
         <nav aria-label="Campaign tools" className="mt-5 flex flex-wrap gap-2 text-xs">
-          <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 font-semibold">Past playthroughs</Link>
+          <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 font-semibold">Old campaigns</Link>
           <Link href="/commanders" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 font-semibold">NPC difficulty</Link>
         </nav>
       </div>
