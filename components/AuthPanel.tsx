@@ -10,13 +10,14 @@ const inputClass = "w-full rounded-md border border-[var(--line)] bg-[var(--surf
 const buttonClass = "rounded-md border border-[var(--accent)] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[#171512] transition hover:bg-[var(--accent-soft)] disabled:opacity-50";
 
 export function AuthPanel() {
-  const { user, loading, signUp, logIn, google, logOut } = useAuth();
+  const { user, loading, signUp, logIn, resetPassword, google, logOut } = useAuth();
   const [createMode, setCreateMode] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [noticeRead, setNoticeRead] = useState(false);
 
   const recordAcknowledgement = async () => {
@@ -34,11 +35,21 @@ export function AuthPanel() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!noticeRead) { setError("Read and acknowledge the privacy notice and simulation disclaimer to continue."); return; }
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setSuccess("");
     try {
       if (createMode) await signUp(email, password, name);
       else await logIn(email, password);
       await recordAcknowledgement();
+    } catch (err) { setError(friendlyAuthError(err)); }
+    finally { setBusy(false); }
+  };
+
+  const sendPasswordReset = async () => {
+    if (!email.trim()) { setError("Enter your email address first, then choose Forgot password?"); return; }
+    setBusy(true); setError(""); setSuccess("");
+    try {
+      await resetPassword(email.trim());
+      setSuccess("If an account exists for that email, a password reset link has been sent.");
     } catch (err) { setError(friendlyAuthError(err)); }
     finally { setBusy(false); }
   };
@@ -59,7 +70,9 @@ export function AuthPanel() {
         {createMode && <input aria-label="Commander name" required maxLength={24} value={name} onChange={(e) => setName(e.target.value)} placeholder="Commander name" className={inputClass} />}
         <input aria-label="Email" autoComplete="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className={inputClass} />
         <input aria-label="Password" autoComplete={createMode ? "new-password" : "current-password"} type="password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (6+ characters)" className={inputClass} />
+        {!createMode && <button type="button" disabled={busy} onClick={sendPasswordReset} className="text-xs font-semibold text-[var(--accent-dark)] underline underline-offset-4 disabled:opacity-50">Forgot password?</button>}
         {error && <p role="alert" className="text-xs leading-5 text-rose-700">{error}</p>}
+        {success && <p role="status" className="text-xs leading-5 text-emerald-700">{success}</p>}
         <button className={`${buttonClass} w-full`} type="submit" disabled={busy}>{busy ? "Please wait…" : createMode ? "Create account" : "Sign in"}</button>
       </form>
       <label className="flex items-start gap-2.5 rounded-md border border-[var(--line)] bg-white px-3 py-3 text-xs leading-5 text-[var(--muted-ink)]"><input type="checkbox" checked={noticeRead} onChange={(event) => setNoticeRead(event.target.checked)} className="mt-1 accent-[var(--accent)]"/><span>I have read the <Link href="/privacy" target="_blank" className="font-semibold text-[var(--accent-dark)] underline">Privacy Notice</Link> and simulation disclaimer. I understand the game is fictional and historical references do not endorse any person or regime.</span></label>

@@ -8,6 +8,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  sendPasswordResetEmail,
   signOut,
   updateProfile,
 } from 'firebase/auth';
@@ -18,6 +19,7 @@ interface AuthCtx {
   loading: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   google: () => Promise<void>;
   logOut: () => Promise<void>;
 }
@@ -64,6 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     logIn: async (email, password) => {
       await signInWithEmailAndPassword(auth, email, password);
+    },
+    resetPassword: async (email) => {
+      await sendPasswordResetEmail(auth, email);
     },
     google: async () => {
       await signInWithPopup(auth, new GoogleAuthProvider());
