@@ -12,10 +12,13 @@ export async function POST(req: Request) {
     const user = await requireUser(req);
     await requirePrivacyAcknowledgement(user.uid);
     const body = await req.json().catch(() => ({}));
-    const gameId = typeof body.gameId === 'string' ? body.gameId : '';
-    if (!gameId) throw new GameError('Choose a campaign to join.');
+    const lobbyCode = typeof body.lobbyCode === 'string' ? body.lobbyCode.trim().toUpperCase() : '';
+    if (!lobbyCode || !/^[A-F0-9]{8}$/.test(lobbyCode)) throw new GameError('Enter a valid 8-character lobby code.');
 
     const db = adminDb();
+    const match = await db.collection('games').where('lobbyCode', '==', lobbyCode).limit(1).get();
+    if (match.empty) throw new GameError('No open lobby matches that code.', 404);
+    const gameId = match.docs[0].id;
     const ref = db.collection('games').doc(gameId);
     let commander = '';
     await db.runTransaction(async (tx) => {
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
       if (!snap.exists) throw new GameError('Campaign not found.', 404);
       const game = snap.data() as GameState;
       if (!game.multiplayer) throw new GameError('This campaign was started as single-player.', 409);
-      if (game.status !== 'ACTIVE') throw new GameError('This campaign has already finished.', 409);
+      if (game.status !== 'LOBBY') throw new GameError('This lobby is no longer accepting players.', 409);
       if ((game.participantUids ?? []).includes(user.uid) || game.players.some((player) => player.uid === user.uid)) {
         throw new GameError('You already joined this campaign.', 409);
       }
@@ -53,7 +56,7 @@ export async function POST(req: Request) {
       tx.set(ref.collection('events').doc(eventDocId(event.seq)), clean(event));
       commander = seat.id;
     });
-    return NextResponse.json({ ok: true, commander });
+    return NextResponse.json({ ok: true, gameId, commander });
   } catch (err) {
     return errorResponse(err);
   }

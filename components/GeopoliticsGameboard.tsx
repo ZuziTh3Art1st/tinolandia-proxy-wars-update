@@ -13,7 +13,7 @@ import { EventFeed } from "@/components/game/EventFeed";
 import { PlayersPanel } from "@/components/game/PlayersPanel";
 import { CampaignMap } from "@/components/game/CampaignMap";
 import { CampaignShare } from "@/components/game/CampaignShare";
-import { MultiplayerPanel } from "@/components/game/MultiplayerPanel";
+import { MultiplayerLobby } from "@/components/game/MultiplayerLobby";
 import { Flag } from "@/components/Flag";
 import { AchievementsBoard } from "@/components/game/AchievementsBoard";
 import { Leaderboard } from "@/components/game/Leaderboard";
@@ -114,6 +114,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
 
   if (status === "loading") return <p className="py-12 text-center text-sm text-[var(--muted-ink)]">Loading campaign…</p>;
   if (status === "missing" || status === "error" || !game) return <div className="py-12 text-center"><p className="text-sm text-[var(--muted-ink)]">{status === "missing" ? "Campaign not found." : "Could not load this campaign."}</p><Link className="mt-4 inline-block text-sm text-[var(--accent-soft)] underline" href="/">Return to the campaign desk</Link></div>;
+  if (game.status === "LOBBY") return <MultiplayerLobby gameId={gameId} />;
 
   return (
     <div className="space-y-3">
@@ -122,7 +123,6 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1"><p className="eyebrow">ROUND {game.round}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-ink)]">{game.phase.replaceAll("_", " ")}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-sm text-[var(--ink)]">{turnPlayer?.name ?? "Campaign complete"}{isHumanTurn ? " · your turn" : turnPlayer?.kind === "human" ? " · player turn" : " · NPC turn"}</p></div>
         <div className="flex flex-wrap items-center gap-3"><p className="text-xs text-[var(--muted-ink)]">{game.countries.length} nations · {game.players.filter((p) => !p.eliminated).length} commanders active</p><button type="button" role="switch" aria-checked={showCommentary} onClick={toggleCommentary} className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${showCommentary ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-slate-300 bg-slate-100 text-slate-600"}`}>Commentary {showCommentary ? "on" : "off"}</button></div>
       </section>
-      <MultiplayerPanel game={game} gameId={gameId} />
       <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.45fr)_minmax(340px,.9fr)]">
         <div className="space-y-4">
           <section className={panel}>

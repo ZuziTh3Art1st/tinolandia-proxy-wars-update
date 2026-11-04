@@ -32,6 +32,14 @@ export default function HomePage() {
   }, [loading, router, user]);
 
   useEffect(() => {
+    if (loading || !user || !accessGranted) return;
+    const lobbyCode = window.sessionStorage.getItem("tinolandia-pending-lobby-code");
+    if (!lobbyCode) return;
+    window.sessionStorage.removeItem("tinolandia-pending-lobby-code");
+    router.replace(`/multiplayer?code=${encodeURIComponent(lobbyCode)}`);
+  }, [accessGranted, loading, router, user]);
+
+  useEffect(() => {
     if (loading || !user) return;
     const pending = window.sessionStorage.getItem("tinolandia-pending-country");
     if (pending && getCountryInfo(pending)) setSelectedCode(pending);
@@ -51,7 +59,7 @@ export default function HomePage() {
       let npcSettings: Record<string, unknown> | undefined;
       try { npcSettings = JSON.parse(window.localStorage.getItem(NPC_SETTINGS_KEY) || "{}"); } catch { npcSettings = undefined; }
       const { gameId } = await createGameApi(selectedCode, npcSettings, multiplayer);
-      router.push(`/game/${gameId}`);
+      router.push(multiplayer ? `/multiplayer/lobby/${gameId}` : `/game/${gameId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start the campaign.");
       setStarting(false);

@@ -97,13 +97,14 @@ export interface GameState {
   ownerName: string;
   /** When enabled, signed-in guests can claim an NPC commander seat. */
   multiplayer?: boolean;
+  lobbyCode?: string;
   participantUids?: string[];
   humanCountry: string;
   /** Countries each commander started with, keyed by player id. */
   startingCountries?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
-  status: 'ACTIVE' | 'FINISHED';
+  status: 'LOBBY' | 'ACTIVE' | 'FINISHED';
   outcome?: 'VICTORY' | 'DEFEAT';
   winnerId?: string;
   players: Player[];

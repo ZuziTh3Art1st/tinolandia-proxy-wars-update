@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomBytes } from 'node:crypto';
 import { createGame, GameError } from '@/lib/engine';
 import { adminDb } from '@/lib/server/firebaseAdmin';
 import { clean, errorResponse, eventDocId, requirePrivacyAcknowledgement, requireUser } from '@/lib/server/http';
@@ -20,16 +21,29 @@ export async function POST(req: Request) {
     const submitted = body.npcSettings && typeof body.npcSettings === 'object' ? body.npcSettings as Record<string, unknown> : {};
     const npcSettings = Object.fromEntries(NPC_PROFILES.map((profile) => [profile.id, normaliseNpcSettings(submitted[profile.id])])) as Record<string, NpcSettings>;
 
-    const { state, events } = createGame({ ownerUid: user.uid, ownerName: user.name, humanCode: countryCode, npcSettings, multiplayer });
+    const { state, events: createdEvents } = createGame({ ownerUid: user.uid, ownerName: user.name, humanCode: countryCode, npcSettings, multiplayer });
 
     const db = adminDb();
+    const events = createdEvents;
+    if (multiplayer) {
+      state.status = 'LOBBY';
+      const firstTurnEvent = events.findIndex((event) => event.kind === 'TURN_START');
+      if (firstTurnEvent >= 0) events.splice(firstTurnEvent, 1);
+      state.eventSeq = events.length ? events[events.length - 1].seq : 0;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const code = randomBytes(4).toString('hex').toUpperCase();
+        const existing = await db.collection('games').where('lobbyCode', '==', code).limit(1).get();
+        if (existing.empty) { state.lobbyCode = code; break; }
+      }
+      if (!state.lobbyCode) throw new GameError('Could not reserve a lobby code. Please try again.');
+    }
     const ref = db.collection('games').doc();
     const batch = db.batch();
     batch.set(ref, clean(state));
     for (const e of events) batch.set(ref.collection('events').doc(eventDocId(e.seq)), clean(e));
     await batch.commit();
 
-    return NextResponse.json({ gameId: ref.id });
+    return NextResponse.json({ gameId: ref.id, lobbyCode: state.lobbyCode });
   } catch (err) {
     return errorResponse(err);
   }
