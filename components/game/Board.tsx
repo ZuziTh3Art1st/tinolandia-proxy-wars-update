@@ -12,9 +12,10 @@ interface Props {
   onPick: (code: string) => void;
   canPick?: (country: GameState['countries'][number]) => boolean;
   isOwner: boolean;
+  playerId?: string;
 }
 
-export function Board({ game, selectedSource, selectedTarget, pickable, onPick, canPick = () => true, isOwner }: Props) {
+export function Board({ game, selectedSource, selectedTarget, pickable, onPick, canPick = () => true, isOwner, playerId = 'player' }: Props) {
   const currentId = game.turnOrder[game.turnIndex];
   const playerOf = (id: string) => game.players.find((p) => p.id === id)!;
 
@@ -22,7 +23,7 @@ export function Board({ game, selectedSource, selectedTarget, pickable, onPick, 
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
       {game.countries.map((c) => {
         const owner = playerOf(c.ownerId);
-        const isMine = owner.kind === 'human' && isOwner;
+        const isMine = owner.id === playerId && isOwner;
         const isSource = game.attack?.sourceId === c.code;
         const isTarget = game.attack?.targetId === c.code;
         const picked = selectedSource === c.code || selectedTarget === c.code;

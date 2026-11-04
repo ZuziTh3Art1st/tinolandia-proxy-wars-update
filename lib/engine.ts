@@ -84,6 +84,7 @@ export function createGame(opts: {
   ownerUid: string;
   ownerName: string;
   humanCode: string;
+  multiplayer?: boolean;
   npcSettings?: Record<string, NpcSettings>;
   rng?: Rng;
 }): { state: GameState; events: GameEvent[] } {
@@ -100,7 +101,7 @@ export function createGame(opts: {
   const colors = shuffle(PLAYER_COLORS, rng);
   const players: Player[] = chosen.map((_, i) =>
     i === 0
-      ? { id: HUMAN_ID, name: opts.ownerName, kind: 'human', color: colors[0], eliminated: false }
+      ? { id: HUMAN_ID, name: opts.ownerName, kind: 'human', uid: opts.ownerUid, color: colors[0], eliminated: false }
       : { id: `npc_${i}`, name: NPC_NAMES[i - 1], kind: 'npc', color: colors[i], eliminated: false, ...(opts.npcSettings?.[`npc_${i}`] ?? DEFAULT_NPC_SETTINGS) }
   );
   const countries: CountryState[] = chosen.map((c, i) => {
@@ -119,6 +120,8 @@ export function createGame(opts: {
   const s: GameState = {
     ownerUid: opts.ownerUid,
     ownerName: opts.ownerName,
+    multiplayer: !!opts.multiplayer,
+    participantUids: [opts.ownerUid],
     humanCountry: mine.code,
     startingCountries: Object.fromEntries(players.map((player, index) => [player.id, chosen[index].code])),
     createdAt: now,
@@ -357,7 +360,7 @@ function afterConquest(s: GameState, events: GameEvent[], attackerPid: string, d
         ? `${attacker.name} has conquered the world! Victory!`
         : `${attacker.name} has conquered the world. Game over.`
     );
-  } else if (defender.kind === 'human' && defender.eliminated) {
+  } else if (!s.multiplayer && defender.kind === 'human' && defender.eliminated) {
     s.status = 'FINISHED';
     s.outcome = 'DEFEAT';
     s.attack = null;

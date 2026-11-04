@@ -22,7 +22,7 @@ export function SiteFooter() {
             { label: "Field briefing", href: "/tutorial" },
             { label: "Old campaigns", href: "/playthroughs" },
             { label: "Rival commanders", href: "/commanders" },
-            { label: "Groq commentary", href: "/commentary" },
+            { label: "Multiplayer campaigns", href: "/multiplayer" },
           ],
         },
         {

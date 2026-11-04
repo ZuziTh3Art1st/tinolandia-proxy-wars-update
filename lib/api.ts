@@ -24,7 +24,9 @@ async function post(path: string, body: unknown) {
   return data;
 }
 
-export const createGameApi = (countryCode: string, npcSettings?: Record<string, unknown>): Promise<{ gameId: string }> => post('/api/game/create', { countryCode, npcSettings });
+export const createGameApi = (countryCode: string, npcSettings?: Record<string, unknown>, multiplayer = false): Promise<{ gameId: string }> => post('/api/game/create', { countryCode, npcSettings, multiplayer });
+
+export const joinGameApi = (gameId: string): Promise<{ ok: true; commander: string }> => post('/api/game/join', { gameId });
 
 export const gameActionApi = (
   gameId: string,

@@ -16,16 +16,19 @@ export function MyGames({ uid }: { uid: string }) {
   const [rows, setRows] = useState<Row[] | null>(null);
 
   useEffect(() => {
-    // single-field filter: no composite index required; sorted client-side
-    const q = query(collection(db, 'games'), where('ownerUid', '==', uid));
-    return onSnapshot(
-      q,
-      (snap) => setRows(snap.docs.map((d) => ({ id: d.id, ...(d.data() as GameState) })).sort((a, b) => b.createdAt.localeCompare(a.createdAt))),
-      (err) => {
-        console.error(err);
-        setRows([]);
-      }
-    );
+    let owned: Row[] | null = null;
+    let joined: Row[] | null = null;
+    const update = () => {
+      if (owned === null || joined === null) return;
+      const byId = new Map<string, Row>();
+      [...owned, ...joined].forEach((game) => byId.set(game.id, game));
+      setRows([...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+    };
+    const ownedQuery = query(collection(db, 'games'), where('ownerUid', '==', uid));
+    const joinedQuery = query(collection(db, 'games'), where('participantUids', 'array-contains', uid));
+    const offOwned = onSnapshot(ownedQuery, (snap) => { owned = snap.docs.map((d) => ({ id: d.id, ...(d.data() as GameState) })); update(); }, (err) => { console.error(err); owned = []; update(); });
+    const offJoined = onSnapshot(joinedQuery, (snap) => { joined = snap.docs.map((d) => ({ id: d.id, ...(d.data() as GameState) })); update(); }, (err) => { console.error(err); joined = []; update(); });
+    return () => { offOwned(); offJoined(); };
   }, [uid]);
 
   if (rows === null) return <p className="text-sm text-slate-500">Loading your games…</p>;

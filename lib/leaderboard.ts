@@ -30,17 +30,17 @@ export function playerDocRef(uid: string) {
 }
 
 /** Record the result of a finished campaign for the human player. */
-export async function recordCampaignResult(game: GameState, humanName: string, humanUid: string) {
-  const human = game.players.find((p) => p.id === "player");
+export async function recordCampaignResult(game: GameState, humanName: string, humanUid: string, playerId = "player") {
+  const human = game.players.find((p) => p.id === playerId);
   if (!human) return;
 
-  const won = game.outcome === "VICTORY";
-  const humanCountries = game.countries.filter((c) => c.ownerId === "player");
+  const won = game.winnerId === human.id || (!game.winnerId && human.id === "player" && game.outcome === "VICTORY");
+  const humanCountries = game.countries.filter((c) => c.ownerId === human.id);
   const conquests = Math.max(0, humanCountries.length - 1); // subtract starting country
   // Count battles won from lastBattle if it was a conquest by the human
   const battlesWon = game.lastBattle && game.lastBattle.conquered && game.lastBattle.attackerOwnerName === humanName ? 1 : 0;
   const roundsSurvived = game.round;
-  const rivalsEliminated = game.players.filter((p) => p.kind === "npc" && p.eliminated).length;
+  const rivalsEliminated = game.players.filter((p) => p.id !== human.id && p.eliminated).length;
 
   const ref = playerDocRef(humanUid);
   const snap = await getDoc(ref);

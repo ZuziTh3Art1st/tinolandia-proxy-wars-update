@@ -18,6 +18,7 @@ export default function HomePage() {
   const { user, loading, logOut } = useAuth();
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [multiplayer, setMultiplayer] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
 
@@ -49,7 +50,7 @@ export default function HomePage() {
     try {
       let npcSettings: Record<string, unknown> | undefined;
       try { npcSettings = JSON.parse(window.localStorage.getItem(NPC_SETTINGS_KEY) || "{}"); } catch { npcSettings = undefined; }
-      const { gameId } = await createGameApi(selectedCode, npcSettings);
+      const { gameId } = await createGameApi(selectedCode, npcSettings, multiplayer);
       router.push(`/game/${gameId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start the campaign.");
@@ -68,8 +69,8 @@ export default function HomePage() {
         <nav aria-label="Campaign preparation" className="mb-3 flex flex-wrap items-center gap-2">
           <Link href="/tutorial" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Play the strategy tutorial</Link>
           <Link href="/commanders" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Configure rival commanders</Link>
-          <Link href="/commentary" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">LLM commentary</Link>
           <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Old campaigns</Link>
+          <Link href="/multiplayer" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Multiplayer guide</Link>
         </nav>
 
         <div className="grid gap-10 py-9 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -81,8 +82,12 @@ export default function HomePage() {
             {error && <p role="alert" className="mb-4 rounded-lg border border-rose-900/40 bg-rose-950/30 px-4 py-3 text-sm text-rose-200">{error}</p>}
             <CountryPicker onSelectCountry={(code) => { setSelectedCode(code); setError(null); }} selectedCode={selectedCode} busy={starting || loading} />
             <div className="mt-4 flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-medium text-[var(--ink)]">
+                <input type="checkbox" checked={multiplayer} onChange={(event) => setMultiplayer(event.target.checked)} className="accent-[var(--accent)]" />
+                Let friends join this campaign
+              </label>
               <button type="button" onClick={() => void start()} disabled={!selectedCode || starting || loading} className="rounded-md bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-dark)] disabled:cursor-not-allowed disabled:opacity-45">
-                {starting ? "Preparing campaign…" : selectedCountry ? `Start campaign as ${selectedCountry.name}` : "Select a country to continue"}
+                {starting ? "Preparing campaign…" : selectedCountry ? `${multiplayer ? "Start multiplayer" : "Start campaign"} as ${selectedCountry.name}` : "Select a country to continue"}
               </button>
             </div>
           </section>

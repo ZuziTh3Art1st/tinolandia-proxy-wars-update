@@ -1,5 +1,5 @@
 import { after, NextResponse } from 'next/server';
-import { applyHumanAction, GameError, npcStep } from '@/lib/engine';
+import { applyHumanAction, currentPlayerId, GameError, npcStep } from '@/lib/engine';
 import { aiCommentary } from '@/lib/commentary';
 import { adminDb } from '@/lib/server/firebaseAdmin';
 import { clean, errorResponse, eventDocId, requirePrivacyAcknowledgement, requireUser } from '@/lib/server/http';
@@ -36,9 +36,19 @@ export async function POST(req: Request) {
       const snap = await tx.get(ref);
       if (!snap.exists) throw new GameError('Game not found.', 404);
       const game = snap.data() as GameState;
-      if (game.ownerUid !== user.uid) throw new GameError('Only the person who started this game can play it.', 403);
       if (expectedVersion !== undefined && expectedVersion !== game.version) {
         throw new GameError('Game moved on.', 409, { stale: true });
+      }
+
+      if (action.type === 'NPC_STEP') {
+        const isParticipant = game.ownerUid === user.uid || (game.participantUids ?? []).includes(user.uid);
+        if (!isParticipant) throw new GameError('Join this campaign before running its rival commanders.', 403);
+      } else {
+        const active = game.players.find((player) => player.id === currentPlayerId(game));
+        const accountUid = active?.uid ?? (active?.id === 'player' ? game.ownerUid : undefined);
+        if (active?.kind !== 'human' || accountUid !== user.uid) {
+          throw new GameError('It is not your turn in this campaign.', 403);
+        }
       }
 
       const result = action.type === 'NPC_STEP' ? npcStep(game) : applyHumanAction(game, action);

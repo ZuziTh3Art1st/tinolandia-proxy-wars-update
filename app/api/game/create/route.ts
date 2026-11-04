@@ -14,12 +14,13 @@ export async function POST(req: Request) {
     await requirePrivacyAcknowledgement(user.uid);
     const body = await req.json().catch(() => ({}));
     const countryCode = typeof body.countryCode === 'string' ? body.countryCode : '';
+    const multiplayer = body.multiplayer === true;
     if (!countryCode) throw new GameError('Choose a country first.');
 
     const submitted = body.npcSettings && typeof body.npcSettings === 'object' ? body.npcSettings as Record<string, unknown> : {};
     const npcSettings = Object.fromEntries(NPC_PROFILES.map((profile) => [profile.id, normaliseNpcSettings(submitted[profile.id])])) as Record<string, NpcSettings>;
 
-    const { state, events } = createGame({ ownerUid: user.uid, ownerName: user.name, humanCode: countryCode, npcSettings });
+    const { state, events } = createGame({ ownerUid: user.uid, ownerName: user.name, humanCode: countryCode, npcSettings, multiplayer });
 
     const db = adminDb();
     const ref = db.collection('games').doc();

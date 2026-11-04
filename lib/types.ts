@@ -6,6 +6,8 @@ export interface Player {
   id: string; // 'player' | 'npc_1' ... 'npc_9'
   name: string;
   kind: PlayerKind;
+  /** Firebase account assigned to this commander in multiplayer games. */
+  uid?: string;
   color: string;
   eliminated: boolean;
   difficulty?: number;
@@ -93,6 +95,9 @@ export interface GameEvent {
 export interface GameState {
   ownerUid: string;
   ownerName: string;
+  /** When enabled, signed-in guests can claim an NPC commander seat. */
+  multiplayer?: boolean;
+  participantUids?: string[];
   humanCountry: string;
   /** Countries each commander started with, keyed by player id. */
   startingCountries?: Record<string, string>;

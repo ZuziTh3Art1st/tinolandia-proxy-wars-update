@@ -3,7 +3,7 @@
 import React from 'react';
 import { GameState } from '@/lib/types';
 
-export function PlayersPanel({ game, isOwner }: { game: GameState; isOwner: boolean }) {
+export function PlayersPanel({ game, isOwner, currentUid }: { game: GameState; isOwner: boolean; currentUid?: string }) {
   const currentId = game.turnOrder[game.turnIndex];
   return (
     <ul className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
@@ -23,7 +23,7 @@ export function PlayersPanel({ game, isOwner }: { game: GameState; isOwner: bool
             <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: p.color }} />
             <span className={`min-w-0 flex-1 truncate font-bold ${p.eliminated ? 'line-through' : ''}`}>
               {p.name}
-              {p.kind === 'human' ? (isOwner ? ' (you)' : ' (player)') : ' (NPC)'}
+              {p.kind === 'human' ? (p.uid === currentUid || (p.id === 'player' && isOwner) ? ' (you)' : ' (player)') : ' (NPC)'}
             </span>
             <span className="text-[10px] text-[var(--muted-ink)]">{p.eliminated ? 'Out' : `${owned.length} nations · ${total} troops`}</span>
             {active && <span className="text-[10px] font-semibold text-[var(--accent-dark)]">NOW</span>}
