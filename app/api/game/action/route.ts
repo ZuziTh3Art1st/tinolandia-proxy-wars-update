@@ -8,6 +8,7 @@ import { GameAction, GameEvent, GameState } from '@/lib/types';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
+let afterUnavailableWarningLogged = false;
 
 /**
  * Every state change goes through here. The server:
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       if (expectedVersion !== game.version) {
         throw new GameError('Game moved on.', 409, { stale: true });
       }
+      if (game.status === 'FINISHED') throw new GameError('This campaign has already finished.', 409);
 
       if (action.type === 'NPC_STEP') {
         if (game.ownerUid !== user.uid) throw new GameError('Only the lobby host may advance NPC commanders.', 403);
@@ -66,7 +68,7 @@ export async function POST(req: Request) {
     // responsive while the updated commentary arrives through the live listener.
     const toNarrate = newEvents.filter((event) => event.battle);
     if (toNarrate.length) {
-      after(async () => {
+      const upgradeCommentary = async () => {
         await Promise.all(toNarrate.map(async (event) => {
           const text = await aiCommentary(event.battle!);
           if (!text) return;
@@ -74,7 +76,18 @@ export async function POST(req: Request) {
             .update({ commentary: text, commentarySource: 'ai' })
             .catch((err) => console.warn('Could not save Groq commentary:', err));
         }));
-      });
+      };
+      try {
+        after(upgradeCommentary);
+      } catch (err) {
+        // Direct route callers (including local harnesses) do not have Next's
+        // request lifecycle. Keep those actions valid and finish narration here.
+        if (!afterUnavailableWarningLogged) {
+          afterUnavailableWarningLogged = true;
+          console.warn('Next.js after() is unavailable; completing commentary inline:', err);
+        }
+        await upgradeCommentary();
+      }
     }
 
     return NextResponse.json({ ok: true, version });

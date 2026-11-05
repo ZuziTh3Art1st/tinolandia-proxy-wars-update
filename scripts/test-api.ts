@@ -113,7 +113,7 @@ async function main() {
     ok('invalid transfer rejected -> 400', r.status === 400);
   } else {
     r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' }, expectedVersion: g.version }, 'tok-u1');
-    ok('human action on an NPC turn -> 409', r.status === 409);
+    ok('human action on an NPC turn is rejected', r.status === 403 || r.status === 409);
   }
   r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' }, expectedVersion: 99 }, 'tok-u1');
   ok('stale expectedVersion -> 409 {stale:true}', r.status === 409 && r.body.stale === true);

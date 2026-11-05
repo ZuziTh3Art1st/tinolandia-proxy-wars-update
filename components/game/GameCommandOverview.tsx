@@ -13,6 +13,7 @@ export function GameCommandOverview({ game, player, currentPlayer }: { game: Gam
   const [open, setOpen] = useState(false);
   const rivals = game.players.filter((commander) => commander.id !== player?.id && !commander.eliminated);
   const myForces = player ? forcesFor(game, player.id) : null;
+  const alliances = game.alliances ?? [];
 
   useEffect(() => {
     if (!open) return;
@@ -45,7 +46,7 @@ export function GameCommandOverview({ game, player, currentPlayer }: { game: Gam
       {open && <div className="fixed inset-0 z-[80] grid place-items-center bg-[#07171c]/60 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="alliance-overview-title" className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[var(--line)] bg-white p-5 shadow-2xl sm:p-6">
           <header className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4"><div><p className="eyebrow">DIPLOMACY DESK</p><h2 id="alliance-overview-title" className="section-title mt-1 text-2xl">Alliance overview</h2><p className="mt-1 text-xs text-[var(--muted-ink)]">See who commands each nation and where the current conflict stands.</p></div><button type="button" onClick={() => setOpen(false)} aria-label="Close alliance overview" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--line)] text-lg hover:bg-[#f4f6f5]">×</button></header>
-          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-xs font-bold text-amber-950">No formal alliances are active</p><p className="mt-1 text-xs leading-5 text-amber-900">All other commanders are independent rivals in this campaign. Alliance treaties are not part of the current game rules.</p></div>
+          {alliances.length ? <div className="mt-4 space-y-2">{alliances.map((alliance) => { const first = game.players.find((commander) => commander.id === alliance.playerA); const second = game.players.find((commander) => commander.id === alliance.playerB); return <div key={`${alliance.playerA}-${alliance.playerB}`} className="rounded-lg border border-emerald-200 bg-emerald-50 p-3"><p className="text-xs font-bold text-emerald-950">Non-aggression pact · active</p><p className="mt-1 text-xs leading-5 text-emerald-900">{first?.name ?? "Commander"} and {second?.name ?? "Commander"} cannot attack one another while this pact remains active.</p></div>; })}</div> : <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-xs font-bold text-amber-950">No formal alliances are active</p><p className="mt-1 text-xs leading-5 text-amber-900">All other commanders are independent rivals in this campaign.</p></div>}
           {game.attack && <p className="mt-3 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-900">Active conflict: {game.countries.find((country) => country.code === game.attack?.sourceId)?.name} is attacking {game.countries.find((country) => country.code === game.attack?.targetId)?.name}.</p>}
           <h3 className="mt-5 text-xs font-bold uppercase tracking-wider text-[var(--muted-ink)]">Commanders and territory</h3>
           <ul className="mt-2 space-y-2">{game.players.map((commander) => {

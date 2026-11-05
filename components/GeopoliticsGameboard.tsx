@@ -32,6 +32,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
   const [target, setTarget] = useState<string | null>(null);
   const [deployCountry, setDeployCountry] = useState<string | null>(null);
   const [autoRoll, setAutoRoll] = useState(false);
+  const [fastForwardNpcs, setFastForwardNpcs] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showCommentary, setShowCommentary] = useState(true);
@@ -97,9 +98,9 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
 
   useEffect(() => {
     if (!game || game.status !== "ACTIVE" || game.ownerUid !== user?.uid || turnPlayer?.kind !== "npc" || busy || status !== "ready") return;
-    const timer = window.setTimeout(() => { void act({ type: "NPC_STEP" }, true); }, 700);
+    const timer = window.setTimeout(() => { void act({ type: "NPC_STEP" }, true); }, fastForwardNpcs ? 120 : 700);
     return () => window.clearTimeout(timer);
-  }, [act, busy, game, status, turnPlayer?.kind, user?.uid]);
+  }, [act, busy, fastForwardNpcs, game, status, turnPlayer?.kind, user?.uid]);
 
   useEffect(() => {
     if (!game || game.phase !== "ATTACKING" || !isHumanTurn || !autoRoll || busy) return;
@@ -150,7 +151,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
         </div>
         <aside className="space-y-4">
           {isParticipant && game.status === "ACTIVE" && isHumanTurn && <section className={panel}><p className="eyebrow mb-3">YOUR ORDERS</p><Controls game={game} act={(action) => act(action)} busy={busy} playerId={myPlayer.id} selSource={source} selTarget={target} setSelSource={setSource} setSelTarget={setTarget} autoRoll={autoRoll} setAutoRoll={setAutoRoll} deploySelected={deployCountry} setDeploySelected={setDeployCountry} /></section>}
-          {isParticipant && game.status === "ACTIVE" && !isHumanTurn && <section className={`${panel} border-l-4 border-l-sky-600`}><p className="eyebrow">RIVAL TURN</p><p className="mt-2 text-base font-semibold">{turnPlayer?.name ?? "A rival commander"} is taking their turn</p><p className="mt-1 text-xs text-[var(--muted-ink)]">The campaign board updates as moves resolve.</p></section>}
+          {isParticipant && game.status === "ACTIVE" && !isHumanTurn && <section className={`${panel} border-l-4 border-l-sky-600`}><p className="eyebrow">RIVAL TURN</p><p className="mt-2 text-base font-semibold">{turnPlayer?.name ?? "A rival commander"} is taking their turn</p><p className="mt-1 text-xs text-[var(--muted-ink)]">The campaign board updates as moves resolve.</p>{game.ownerUid === user?.uid && <button type="button" aria-pressed={fastForwardNpcs} onClick={() => setFastForwardNpcs((enabled) => !enabled)} className={`mt-3 min-h-10 rounded-md border px-3 py-2 text-xs font-semibold transition ${fastForwardNpcs ? "border-sky-700 bg-sky-800 text-white" : "border-[var(--line)] bg-white text-[var(--ink)] hover:border-sky-700"}`}>{fastForwardNpcs ? "Return to normal pace" : "Fast-forward NPC moves"}</button>}</section>}
           {!isParticipant && <p className={`${panel} text-sm text-[var(--muted-ink)]`}>Public view. Join this campaign to command an open nation.</p>}
           <section className={panel}><div className="mb-2 flex items-center justify-between"><p className="eyebrow">LATEST BATTLE</p>{game.lastBattle && <span className="text-xs text-[var(--muted-ink)]">Dice round {game.lastBattle.round}</span>}</div><BattleArena game={game} events={events} showCommentary={showCommentary} compact /></section>
           {game.status === "FINISHED" && <section className={`${panel} border-emerald-200 bg-gradient-to-br from-white to-emerald-50`}>
@@ -175,6 +176,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
           <Leaderboard />
         </aside>
       </div>
+      {fastForwardNpcs && game.status === "ACTIVE" && game.ownerUid === user?.uid && turnPlayer?.kind === "npc" && <section aria-live="polite" className={`${panel} border-sky-200 bg-sky-50/70`}><div className="mb-2 flex items-center justify-between gap-3"><div><p className="eyebrow">FAST-FORWARD · LIVE COMMAND LOG</p><p className="mt-1 text-[10px] text-[var(--muted-ink)]">NPC moves remain visible with their decision reasons.</p></div><span className="rounded-full bg-sky-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-sky-900">{turnPlayer.name} moving</span></div><div className="max-h-[35vh] overflow-y-auto"><EventFeed events={events.slice().sort((a, b) => a.seq - b.seq).slice(-20)} showCommentary={showCommentary} /></div></section>}
       {game.status === "ACTIVE" && isParticipant && <TacticalTipGuide game={game} gameId={gameId} player={myPlayer} />}
       {game.status === "FINISHED" && myPlayer && game.winnerId === myPlayer.id && dismissedVictoryFor !== gameId && <VictoryCelebration key={gameId} commander={myPlayer.name} nation={game.countries.find((country) => country.code === (game.startingCountries?.[myPlayer.id] ?? game.humanCountry))?.name ?? game.humanCountry} onClose={() => setDismissedVictoryFor(gameId)} />}
     </div>

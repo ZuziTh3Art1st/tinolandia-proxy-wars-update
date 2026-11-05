@@ -1,83 +1,150 @@
 # Tinolandia Proxy Wars™
 
-A Risk-inspired, single-player geopolitical strategy game. Pick any country in the world (234 countries, from Worldometer's 2026 population table), face 9 NPC commanders, and conquer all 10 nations to win.
+Tinolandia Proxy Wars is a browser based, turn based geopolitical strategy simulation created by Ashley Tinotenda Buzuzi. Choose a nation, command its forces, and compete with rival commanders on a live world map.
 
-🔗 **Live app:** https://tinolandia-proxy-wars-update.vercel.app  
-📁 **Source:** https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update  
+- **Live app:** <https://tinolandia-proxy-wars-update.vercel.app>
+- **Source:** <https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update>
 
----
+## Features
 
-## What the game is
+- Campaigns with 10 nations: the player and nine NPC commanders.
+- Country selection across the world, with starting forces determined by population.
+- Dice based attacks, reinforcements, troop transfers, conquest bonuses, elimination, and victory conditions.
+- NPC personalities, configurable difficulty, and decision explanations in the event history.
+- Live interactive campaign map, battle reports, commentary, campaign replay, and completed campaign archive.
+- Optional Groq generated battle narration. The game uses built in factual narration if Groq is not configured or unavailable. Groq narrates battles; NPC decisions are made by the game’s rules and strategy engine.
+- Multiplayer lobbies with join codes, player turns, and diplomacy pacts.
+- Tutorial, achievements, commander profiles, and campaign rankings.
+- Account sign in with Firebase Authentication.
 
-**Tinolandia Proxy Wars** is a turn-based geopolitical simulator played in the browser.
+## Game rules
 
-- **Pick your nation:** Choose any country from a list of 234 (real 2026 population data). Your starting soldiers scale with population — small nations start fragile, large nations start strong.
-- **Face 9 NPC commanders:** Each AI has a personality profile (aggressive, defensive, expansionist) and scores attack targets using exact conquest probability derived from the dice rules.
-- **Take turns:** Each round you may transfer soldiers between your countries, launch one attack, or skip. From round 2 you deploy 2 reinforcements per country you control.
-- **Combat:** Dice-based battles. Attacker rolls (attacker − 1 dice), defender rolls (defender dice). Dice are paired die-for-die: higher roll wins each pairing, ties kill nobody. Keep rolling until you conquer, fall to 1 soldier, or call it off.
-- **Conquest:** Wiping out a country's defenders lets you take it and gain bonus soldiers (Max(2, half the country's original soldier value)).
-- **Win / lose:** Conquer all 10 nations to win. Lose every country and you're eliminated.
-- **Spectate live:** Share your game URL — anyone can watch the board update in real time. Only the game owner can play turns.
+Each campaign contains 10 countries. Starting soldiers are based on the selected country’s population band. During a turn, a commander may deploy reinforcements, make one attack or end their turn, and transfer soldiers between owned countries when the rules allow. At least one soldier must remain in a country after a transfer.
 
----
+An attack requires at least two soldiers. The attacker rolls up to one fewer die than the number of attacking soldiers; the defender rolls up to one die per defending soldier. Dice are compared in descending pairs. The lower die loses one soldier; tied dice cause no loss. Attacks continue until the country is conquered, the attacker is reduced to one soldier, or the attacker stops. Conquest grants a troop bonus based on the country’s original strength. A commander who loses all their countries is eliminated; the last surviving commander wins.
 
-## Technologies (deployed on Vercel)
+In multiplayer, the lobby host starts the game after players join. Unfilled commander seats are controlled by NPCs. Non-aggression pacts prevent the participating commanders from attacking each other while the pact remains active.
 
-| Layer | Technology |
+## Technology
+
+| Area | Technology |
 |---|---|
-| Frontend framework | Next.js (App Router), React 19 |
+| Web app | Next.js App Router, React, TypeScript |
 | Styling | Tailwind CSS |
-| Language | TypeScript |
-| Authentication | Firebase Authentication (email/password + Google) |
+| Authentication | Firebase Authentication (email/password and Google) |
 | Database | Cloud Firestore (NoSQL) |
-| Server SDK | Firebase Admin SDK |
-| AI commentary | Groq LLM (server-side key; built-in field reports remain as fallback) |
-| Hosting | Vercel (serverless functions) |
+| Server side access | Firebase Admin SDK, Next.js route handlers |
+| Optional battle narration | Groq API |
+| Hosting | Vercel |
 
----
+## Run locally
 
-## Architecture
+### Requirements
 
-- **Server-authoritative:** All dice rolls and state changes execute on the server inside a single Firestore transaction. The browser cannot edit soldiers or re-roll battles.
-- **API routes:** `/api/game/create` starts a game; `/api/game/action` validates the Firebase ID token, checks ownership, runs the rules engine, and saves state + events atomically.
-- **Real-time updates:** Game pages use Firestore live listeners so spectators see moves as they happen.
-- **Security:** Firestore rules allow public read (so shared links work) but deny all client writes. Only the authenticated server (Firebase Admin) can mutate game state.
-- **Authentication:** Firebase ID tokens are verified server-side on every API request; session expiry and stale-version conflicts are handled explicitly.
+- Node.js 20.9 or newer
+- npm
+- A Firebase project with Authentication and Cloud Firestore enabled
+- A Firebase service account for the server API
+- A Groq API key only if you want AI battle narration; it is optional
 
----
+### Setup
 
-## Project structure
+1. Clone the repository and install dependencies:
 
+   ```bash
+   git clone https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update.git
+   cd tinolandia-proxy-wars-update
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env.local` and set the Firebase Admin credentials:
+
+   ```dotenv
+   FIREBASE_ADMIN_CLIENT_EMAIL=your-service-account-email
+   FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   ```
+
+   `FIREBASE_ADMIN_PROJECT_ID` is optional if the project ID can be inferred from the public Firebase configuration. Keep `.env.local` private and never commit service account credentials.
+
+3. For AI narration, optionally add:
+
+   ```dotenv
+   GROQ_API_KEY=your-groq-api-key
+   GROQ_MODEL=openai/gpt-oss-20b
+   ```
+
+4. Configure Firebase Authentication providers (Email/Password and Google), add your local and deployed domains to the Firebase authorized domains list, and publish the repository’s `firestore.rules` to Cloud Firestore.
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   Open <http://localhost:3000>.
+
+## Environment variables
+
+| Variable | Required | Purpose |
+|---|---:|---|
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Yes | Firebase service account email for server-side operations |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Yes | Firebase service account private key; keep secret |
+| `FIREBASE_ADMIN_PROJECT_ID` | Optional | Explicit Firebase project ID for the Admin SDK |
+| `GROQ_API_KEY` | No | Enables Groq battle narration; built in narration is used otherwise |
+| `GROQ_MODEL` | No | Groq model name; defaults to `openai/gpt-oss-20b` |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Usually no | Override the app’s configured Firebase web API key |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Usually no | Override the app’s configured Firebase project ID |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Usually no | Override the app’s Firebase Authentication domain |
+
+The `NEXT_PUBLIC_` values are browser configuration, not server secrets. Never expose Firebase Admin credentials or Groq keys in client code.
+
+## Useful commands
+
+```bash
+npm run dev        # Run the development server
+npm run build      # Create a production build
+npm run start      # Serve a production build
+npm run typecheck  # Run TypeScript checks
+npm run simulate   # Simulate campaigns and check game invariants
+npm run test:api   # Exercise API routes and game access rules
 ```
-app/                    Next.js App Router pages + API routes
-  game/[id]/page.tsx    The live game board (client component)
-  api/game/create/route.ts   POST — create a new game session
-  api/game/action/route.ts   POST — execute a human or NPC action
-components/             React UI: CountryPicker, Board, BattleArena, Controls, EventFeed, PlayersPanel, etc.
-lib/rules.ts            Dice math, population→soldiers table, conquest bonus, win-probability DP
-lib/engine.ts           Pure game state machine (turns, phases, attacks, transfers, conquest)
-lib/npc.ts              NPC decision engine — scores (source, target) pairs using exact conquest probability
-lib/commentary.ts       Groq LLM battle narration with instant template fallback
-lib/server/             Firebase Admin initialization + request authentication (server only)
-firestore.rules         Security rules
-scripts/                Game simulation (invariant checks) and API route tests
+
+## Architecture and security
+
+- `lib/engine.ts`, `lib/rules.ts`, and `lib/npc.ts` implement the game state transitions, combat rules, and NPC strategy.
+- `app/api/game/` contains the server routes for creating campaigns, actions, multiplayer joins/starts, and diplomacy.
+- Game actions are validated server side. Dice and authoritative state changes are performed in Firestore transactions; the browser submits actions and displays the resulting state.
+- Firebase ID tokens are verified by the server. Firestore rules permit reading shared campaign state and events but deny client writes; the Firebase Admin SDK performs server writes.
+- Groq calls are made server side. An unavailable or unconfigured Groq service does not prevent play.
+- Achievements are currently stored in browser `localStorage`, so they are tied to that browser and should not be treated as tamper proof. Game state is server authoritative, but this does not make locally stored achievements cheat resistant.
+
+## Project map
+
+```text
+app/                         Pages and API routes
+  api/game/                  Campaign, action, multiplayer, and diplomacy endpoints
+  game/[id]/                 Active campaign and replay
+  multiplayer/               Multiplayer lobby and join flow
+  playthroughs/              Completed campaign archive
+  achievements/              Achievements page
+  tutorial/                  Interactive tutorial
+components/                  Game board, map, controls, reports, and pages
+lib/                         Rules, state engine, NPCs, Firebase, and commentary
+firestore.rules              Client database access rules
+scripts/                     Simulation and API verification scripts
 ```
 
----
+## Deployment
 
-## Troubleshooting (deployed app)
+The project is configured for Vercel. Set the Firebase Admin environment variables in the Vercel project settings (and `GROQ_API_KEY` if desired), ensure the deployed domain is authorized in Firebase Authentication, and deploy the `main` branch. Confirm the deployment build succeeds before sharing it.
 
-| Symptom | Likely cause / fix |
-|---|---|
-| Sign-in fails with "could not record privacy notice" | Server lacks `FIREBASE_ADMIN_*` credentials. They are set in **Vercel Project Settings → Environment Variables**. |
-| Google sign-in: "unauthorized domain" | Add `tinolandia-proxy-wars-update.vercel.app` to Firebase Console → Authentication → Settings → Authorized domains. |
-| Game page won't load / "Could not read this game" | Firestore rules not published, or invalid game ID. |
-| Commentary is plain text, not AI | Open `/commentary` to check whether `GROQ_API_KEY` is configured in the deployed environment. Add it in Vercel Project Settings → Environment Variables and redeploy. Gameplay keeps built-in field reports if Groq is unavailable. |
-| "Server is not configured" error | `FIREBASE_ADMIN_CLIENT_EMAIL` / `FIREBASE_ADMIN_PRIVATE_KEY` missing from Vercel env vars. |
-| Changes not appearing after pushing to GitHub | Vercel auto-deploys on push to `main`; check the Vercel dashboard deploy logs. |
+## Known limitations and review notes
 
----
+- The privacy notice at `/privacy` is explicitly a draft and still needs the project operator’s contact information and retention details before public use.
+- Achievements use local browser storage and can be edited or lost by clearing browser data.
+- The leaderboard client currently uses Firestore client reads and writes, while `firestore.rules` denies client access outside campaign documents. Ranking updates may therefore fail until a server-side leaderboard API and appropriate validation are implemented.
+- Multiplayer diplomacy currently implements non-aggression pacts; it does not include a broader negotiation or trade system.
 
-## Free-tier note
+## Assessment brief coverage
 
-A full game writes roughly 700 Firestore documents. The Firebase Spark free plan allows 20,000 writes/day (~25+ games/day).
+The app includes the core campaign loop, authentication, a NoSQL database, server-side game actions, input validation, battle and NPC behavior, a live UI, and additional campaign, tutorial, replay, achievement, and multiplayer features. `npm run typecheck`, `npm run simulate`, and `npm run test:api` provide local verification. These checks do not replace a manual review of deployed Firebase settings, multiplayer behavior across separate accounts, or the completed privacy notice. Marks depend on the examiner’s review; this README does not claim a particular score or full compliance.

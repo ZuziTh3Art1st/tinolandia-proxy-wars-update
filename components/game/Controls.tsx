@@ -71,10 +71,11 @@ function TransferPanel({
   game,
   act,
   busy,
+  playerId,
   defaultFrom,
   defaultTo,
-}: Pick<Props, 'game' | 'act' | 'busy'> & { defaultFrom?: string; defaultTo?: string }) {
-  const mine = game.countries.filter((c) => c.ownerId === HUMAN_ID);
+}: Pick<Props, 'game' | 'act' | 'busy' | 'playerId'> & { defaultFrom?: string; defaultTo?: string }) {
+  const mine = game.countries.filter((c) => c.ownerId === (playerId ?? HUMAN_ID));
   const [from, setFrom] = useState(defaultFrom ?? '');
   const [to, setTo] = useState(defaultTo ?? '');
   const [count, setCount] = useState(1);
@@ -182,7 +183,7 @@ export function Controls(props: Props) {
         <p className="text-sm text-emerald-800">
           You conquered <b>{conquered.name}</b> and it now holds {conquered.soldiers} soldiers. Reinforce it from your attacking country if you like, then end your turn.
         </p>
-        <TransferPanel key={`post-${game.version}`} game={game} act={act} busy={busy} defaultFrom={game.attack.sourceId} defaultTo={game.attack.targetId} />
+        <TransferPanel key={`post-${game.version}`} game={game} act={act} busy={busy} playerId={playerId} defaultFrom={game.attack.sourceId} defaultTo={game.attack.targetId} />
         <button className={primary} disabled={busy} onClick={() => act({ type: 'END_TURN' })}>
           End turn
         </button>
@@ -240,7 +241,7 @@ export function Controls(props: Props) {
 
       <section className="space-y-2">
         <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-ink)]">Transfer soldiers</h3>
-        <TransferPanel key={`t-${game.version}`} game={game} act={act} busy={busy} />
+        <TransferPanel key={`t-${game.version}`} game={game} act={act} busy={busy} playerId={playerId} />
       </section>
 
       <button className={ghost} disabled={busy} onClick={() => act({ type: 'END_TURN' })}>
