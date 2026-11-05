@@ -76,10 +76,4 @@ The application is deployed on Vercel. Its production environment uses Firebase 
 
 Firebase Authentication must have the deployed domain authorized, and the repository’s `firestore.rules` must be published to Cloud Firestore. Keep Admin and Groq credentials private.
 
-## Current limitations
-
-- The privacy notice at `/privacy` is explicitly a draft and still needs the project operator’s contact information and retention details before public use.
-- Achievements use local browser storage and can be edited or lost by clearing browser data.
-- The leaderboard client currently uses Firestore client reads and writes, while `firestore.rules` denies client access outside campaign documents. Ranking updates may therefore fail until a server-side leaderboard API and appropriate validation are implemented.
-- Multiplayer diplomacy currently implements non-aggression pacts; it does not include a broader negotiation or trade system.
 
