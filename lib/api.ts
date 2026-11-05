@@ -30,6 +30,8 @@ export const joinGameApi = (lobbyCode: string): Promise<{ ok: true; gameId: stri
 
 export const startLobbyApi = (gameId: string): Promise<{ ok: true }> => post('/api/game/start', { gameId });
 
+export const markGameAssistedApi = (gameId: string): Promise<{ ok: true }> => post('/api/game/assist', { gameId });
+
 export const gameActionApi = (
   gameId: string,
   action: GameAction,

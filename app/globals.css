@@ -96,10 +96,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .tutorial-step-panel { animation: tutorial-step-arrive 420ms cubic-bezier(.2,.75,.2,1) both; }
 .tutorial-piece { border-radius: .375rem; border-width: 1px; background: #fff; padding: .75rem; transition: border-color 220ms ease, background-color 220ms ease, transform 220ms ease; }
 .tutorial-piece-count { animation: tutorial-count-arrive 420ms cubic-bezier(.2,.8,.2,1) both; }
+.tactical-tip-beacon { animation: tactical-tip-float 2.8s ease-in-out infinite; }
 @keyframes tutorial-step-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes tutorial-count-arrive { 0% { opacity: .35; transform: translateY(6px) scale(.84); } 65% { opacity: 1; transform: translateY(-2px) scale(1.12); } 100% { transform: translateY(0) scale(1); } }
+@keyframes tactical-tip-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) {
-  .tutorial-step-panel, .tutorial-piece-count { animation: none; }
+  .tutorial-step-panel, .tutorial-piece-count, .tactical-tip-beacon { animation: none; }
   .tutorial-piece { transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {

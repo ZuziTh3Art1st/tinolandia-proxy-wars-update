@@ -59,7 +59,7 @@ function boundaryPath(feature: BoundaryFeature) {
   }).join(" ") + " Z").join(" ")).join(" ");
 }
 
-export function CampaignMap({ game, onPick, pickable = false, selectedSource, selectedTarget, isOwner = false }: { game: GameState; onPick?: (code: string) => void; pickable?: boolean; selectedSource?: string | null; selectedTarget?: string | null; isOwner?: boolean }) {
+export function CampaignMap({ game, onPick, pickable = false, selectedSource, selectedTarget, isOwner = false, playerId }: { game: GameState; onPick?: (code: string) => void; pickable?: boolean; selectedSource?: string | null; selectedTarget?: string | null; isOwner?: boolean; playerId?: string }) {
   const [zoom, setZoom] = useState(1);
   const [features, setFeatures] = useState<BoundaryFeature[]>([]);
   const [focusedCode, setFocusedCode] = useState<string | null>(null);
@@ -125,14 +125,14 @@ export function CampaignMap({ game, onPick, pickable = false, selectedSource, se
             const country = countriesByCode.get(code);
             const owner = country ? game.players.find((player) => player.id === country.ownerId) : undefined;
             const selected = code === selectedSource || code === selectedTarget || code === focusedCode;
-            const fill = owner ? owner.kind === "human" ? "#1800ad" : owner.color : "url(#world-land)";
+            const fill = owner ? owner.color || (owner.kind === "human" ? "#1800ad" : "#527a7c") : "url(#world-land)";
             return <path key={`${code}-${index}`} d={boundaryPath(feature)} fill={fill} fillOpacity={owner ? .92 : .94} stroke={selected ? "#fff5d8" : owner ? "#f5dec0" : "#788b7d"} strokeWidth={selected ? 2.2 : owner ? 1.25 : .65} className={pickable ? "cursor-pointer transition-[filter,fill] hover:brightness-110" : undefined} role={country && pickable ? "button" : undefined} tabIndex={country && pickable ? 0 : -1} aria-label={`${feature.properties.ADMIN ?? code}${country ? `, ${country.soldiers} soldiers, commanded by ${owner?.name ?? "unknown"}` : ", not in this campaign"}`} onClick={() => pickFeature(code)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); pickFeature(code); } }}><title>{`${feature.properties.ADMIN ?? code}${country ? ` · ${country.soldiers} troops · ${owner?.name ?? "Unknown commander"}` : " · not in this campaign"}`}</title></path>;
           })}
         </g>
         {route && <path d={route} fill="none" stroke="#1800ad" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="7 6" className="map-route"/>}
         {markers.map(({ country, point: [x,y], owner }) => {
           const active = engagement?.from === country.code || engagement?.to === country.code;
-          const color = owner?.kind === "human" ? "#1800ad" : owner?.color ?? "#527a7c";
+          const color = owner?.color ?? "#527a7c";
           const chosen = selectedSource === country.code || selectedTarget === country.code;
           return <g key={country.code} role="button" tabIndex={0} aria-label={`${country.name}, ${country.soldiers} soldiers${owner ? `, commanded by ${owner.name}` : ""}${pickable ? ". Select nation" : ""}`} onClick={() => { setFocusedCode(country.code); setShowSoldiers(false); if (pickable) onPick?.(country.code); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setFocusedCode(country.code); setShowSoldiers(false); if (pickable) onPick?.(country.code); } }} className="cursor-pointer outline-none">
             <title>{`${country.name}: ${country.soldiers} soldiers · ${owner?.name ?? "Unknown commander"}`}</title>
@@ -158,7 +158,7 @@ export function CampaignMap({ game, onPick, pickable = false, selectedSource, se
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--line)] bg-white/75 px-3 py-2 text-[10px] text-[var(--muted-ink)]">
         <span>{pickable ? "Tap a country or marker to issue orders · Double-tap to zoom" : "Country borders and campaign positions · Natural Earth boundaries"}</span>
-        <span className="flex items-center gap-3"><span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-[#1800ad]"/>{isOwner ? "Your command" : "Campaign owner"}</span><span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-gradient-to-r from-[#5288a8] via-[#b4665a] to-[#a88a67]"/>Rival commander colors</span></span>
+        <span className="flex items-center gap-3"><span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full" style={{ backgroundColor: game.players.find((player) => player.id === playerId)?.color ?? "#1800ad" }}/>{isOwner ? "Your command" : "Campaign owner"}</span><span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-gradient-to-r from-[#5288a8] via-[#b4665a] to-[#a88a67]"/>Other commanders</span></span>
         <span className="text-[9px]">Country geometry: Natural Earth (public domain)</span>
         {engagement && <span className="font-medium text-[var(--accent-dark)]">Latest route: {markers.find((m) => m.country.code === engagement.from)?.country.name} → {markers.find((m) => m.country.code === engagement.to)?.country.name}</span>}
       </div>

@@ -11,11 +11,13 @@ export type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
 export function useGame(gameId: string | undefined) {
   const [game, setGame] = useState<GameState | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
+  const [eventsReady, setEventsReady] = useState(false);
   const [status, setStatus] = useState<LoadStatus>('loading');
 
   useEffect(() => {
     if (!gameId) return;
     setStatus('loading');
+    setEventsReady(false);
     const offGame = onSnapshot(
       doc(db, 'games', gameId),
       (snap) => {
@@ -30,8 +32,14 @@ export function useGame(gameId: string | undefined) {
     );
     const offEvents = onSnapshot(
       query(collection(db, 'games', gameId, 'events'), orderBy('seq', 'desc'), limit(80)),
-      (snap) => setEvents(snap.docs.map((d) => d.data() as GameEvent)),
-      (err) => console.error('Events subscription error:', err)
+      (snap) => {
+        setEvents(snap.docs.map((d) => d.data() as GameEvent));
+        setEventsReady(true);
+      },
+      (err) => {
+        console.error('Events subscription error:', err);
+        setEventsReady(true);
+      }
     );
     return () => {
       offGame();
@@ -39,5 +47,5 @@ export function useGame(gameId: string | undefined) {
     };
   }, [gameId]);
 
-  return { game, events, status };
+  return { game, events, eventsReady, status };
 }

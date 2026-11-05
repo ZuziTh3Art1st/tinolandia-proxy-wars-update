@@ -97,6 +97,8 @@ export interface GameState {
   ownerName: string;
   /** When enabled, signed-in guests can claim an NPC commander seat. */
   multiplayer?: boolean;
+  /** Set when an in-campaign strategy hint is requested; assisted campaigns are not achievement eligible. */
+  assisted?: boolean;
   lobbyCode?: string;
   participantUids?: string[];
   humanCountry: string;
