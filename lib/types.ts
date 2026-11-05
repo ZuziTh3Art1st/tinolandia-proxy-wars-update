@@ -101,6 +101,8 @@ export interface GameState {
   assisted?: boolean;
   lobbyCode?: string;
   participantUids?: string[];
+  diplomacyOffers?: Array<{ id: string; fromPlayerId: string; toPlayerId: string; createdAt: string }>;
+  alliances?: Array<{ playerA: string; playerB: string; formedAt: string }>;
   humanCountry: string;
   /** Countries each commander started with, keyed by player id. */
   startingCountries?: Record<string, string>;

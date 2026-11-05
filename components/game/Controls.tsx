@@ -17,6 +17,7 @@ interface Props {
   setAutoRoll: (v: boolean) => void;
   deploySelected: string | null;
   setDeploySelected: (c: string | null) => void;
+  playerId?: string;
 }
 
 const btn = 'rounded-lg px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45 min-h-[44px]';
@@ -26,8 +27,8 @@ const danger = `${btn} border border-rose-200 bg-rose-50 text-rose-800 hover:bg-
 const select = 'w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none min-h-[44px]';
 
 // ---------------------------------------------------------------------------
-function DeployPanel({ game, act, busy, selected, onSelect }: Pick<Props, 'game' | 'act' | 'busy'> & { selected: string | null; onSelect: (code: string | null) => void }) {
-  const mine = game.countries.filter((c) => c.ownerId === HUMAN_ID);
+function DeployPanel({ game, act, busy, selected, onSelect, playerId }: Pick<Props, 'game' | 'act' | 'busy' | 'playerId'> & { selected: string | null; onSelect: (code: string | null) => void }) {
+  const mine = game.countries.filter((c) => c.ownerId === (playerId ?? HUMAN_ID));
   const [alloc, setAlloc] = useState<Record<string, number>>({});
   const used = Object.values(alloc).reduce((a, b) => a + b, 0);
   const left = game.reinforcementsLeft - used;
@@ -129,12 +130,14 @@ function TransferPanel({
 // ---------------------------------------------------------------------------
 export function Controls(props: Props) {
   const { game, act, busy, selSource, selTarget, setSelSource, setSelTarget, autoRoll, setAutoRoll } = props;
-  const mine = game.countries.filter((c) => c.ownerId === HUMAN_ID);
-  const foes = game.countries.filter((c) => c.ownerId !== HUMAN_ID).sort((a, b) => a.soldiers - b.soldiers);
+  const playerId = props.playerId ?? HUMAN_ID;
+  const mine = game.countries.filter((c) => c.ownerId === playerId);
+  const allies = (game.alliances ?? []).filter((alliance) => alliance.playerA === playerId || alliance.playerB === playerId).map((alliance) => alliance.playerA === playerId ? alliance.playerB : alliance.playerA);
+  const foes = game.countries.filter((c) => c.ownerId !== playerId && !allies.includes(c.ownerId)).sort((a, b) => a.soldiers - b.soldiers);
 
   // ---- REINFORCE
   if (game.phase === 'REINFORCE') {
-    return <DeployPanel key={`deploy-${game.round}-${game.turnIndex}`} game={game} act={act} busy={busy} selected={props.deploySelected} onSelect={props.setDeploySelected} />;
+    return <DeployPanel key={`deploy-${game.round}-${game.turnIndex}`} game={game} act={act} busy={busy} playerId={playerId} selected={props.deploySelected} onSelect={props.setDeploySelected} />;
   }
 
   // ---- ATTACKING

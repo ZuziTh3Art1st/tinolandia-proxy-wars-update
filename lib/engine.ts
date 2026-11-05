@@ -250,6 +250,9 @@ function doStartAttack(s: GameState, events: GameEvent[], pid: string, sourceId:
   const tgt = getCountry(s, targetId);
   if (src.ownerId !== pid) throw new GameError('You can only attack from a country you control.', 403);
   if (tgt.ownerId === pid) throw new GameError('You cannot attack your own country.');
+  if ((s.alliances ?? []).some((alliance) => (alliance.playerA === pid && alliance.playerB === tgt.ownerId) || (alliance.playerB === pid && alliance.playerA === tgt.ownerId))) {
+    throw new GameError('You have a non-aggression pact with this commander. End the alliance on your turn before attacking.', 409);
+  }
   if (src.soldiers < 2) throw new GameError(`${src.name} needs at least 2 soldiers to attack.`);
   const attack: AttackState = { sourceId, targetId, rounds: 0 };
   s.attack = attack;

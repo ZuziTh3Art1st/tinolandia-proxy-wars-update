@@ -18,6 +18,7 @@ import { Flag } from "@/components/Flag";
 import { Leaderboard } from "@/components/game/Leaderboard";
 import { GameCommandOverview } from "@/components/game/GameCommandOverview";
 import { TacticalTipGuide } from "@/components/game/TacticalTipGuide";
+import { DiplomacyPanel } from "@/components/game/DiplomacyPanel";
 import { VictoryCelebration } from "@/components/game/VictoryCelebration";
 import { recordCampaignResult } from "@/lib/leaderboard";
 import { recordGameResult } from "@/lib/achievements";
@@ -95,10 +96,10 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
   }, [events, eventsReady, game, user, gameId]);
 
   useEffect(() => {
-    if (!game || game.status !== "ACTIVE" || !isParticipant || turnPlayer?.kind !== "npc" || busy || status !== "ready") return;
+    if (!game || game.status !== "ACTIVE" || game.ownerUid !== user?.uid || turnPlayer?.kind !== "npc" || busy || status !== "ready") return;
     const timer = window.setTimeout(() => { void act({ type: "NPC_STEP" }, true); }, 700);
     return () => window.clearTimeout(timer);
-  }, [act, busy, game, isParticipant, status, turnPlayer?.kind]);
+  }, [act, busy, game, status, turnPlayer?.kind, user?.uid]);
 
   useEffect(() => {
     if (!game || game.phase !== "ATTACKING" || !isHumanTurn || !autoRoll || busy) return;
@@ -135,6 +136,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
         <div className="flex flex-wrap items-center gap-3"><p className="text-xs text-[var(--muted-ink)]">{game.countries.length} nations · {game.players.filter((p) => !p.eliminated).length} commanders active</p>{game.assisted && <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-900">Assisted · no achievements</span>}<Link href="/achievements" className="rounded-full border border-[var(--line)] bg-white px-3 py-1.5 text-[11px] font-medium text-[var(--ink)] hover:border-[var(--accent)]">Achievements</Link><button type="button" role="switch" aria-checked={showCommentary} onClick={toggleCommentary} className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${showCommentary ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-slate-300 bg-slate-100 text-slate-600"}`}>Commentary {showCommentary ? "on" : "off"}</button></div>
       </section>
       {game.status === "ACTIVE" && <GameCommandOverview game={game} player={myPlayer} currentPlayer={turnPlayer} />}
+      {isParticipant && <DiplomacyPanel game={game} gameId={gameId} playerId={myPlayer.id} />}
       <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.45fr)_minmax(340px,.9fr)]">
         <div className="space-y-4">
           <section className={panel}>
@@ -147,7 +149,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
           </section>
         </div>
         <aside className="space-y-4">
-          {isParticipant && game.status === "ACTIVE" && isHumanTurn && <section className={panel}><p className="eyebrow mb-3">YOUR ORDERS</p><Controls game={game} act={(action) => act(action)} busy={busy} selSource={source} selTarget={target} setSelSource={setSource} setSelTarget={setTarget} autoRoll={autoRoll} setAutoRoll={setAutoRoll} deploySelected={deployCountry} setDeploySelected={setDeployCountry} /></section>}
+          {isParticipant && game.status === "ACTIVE" && isHumanTurn && <section className={panel}><p className="eyebrow mb-3">YOUR ORDERS</p><Controls game={game} act={(action) => act(action)} busy={busy} playerId={myPlayer.id} selSource={source} selTarget={target} setSelSource={setSource} setSelTarget={setTarget} autoRoll={autoRoll} setAutoRoll={setAutoRoll} deploySelected={deployCountry} setDeploySelected={setDeployCountry} /></section>}
           {isParticipant && game.status === "ACTIVE" && !isHumanTurn && <section className={`${panel} border-l-4 border-l-sky-600`}><p className="eyebrow">RIVAL TURN</p><p className="mt-2 text-base font-semibold">{turnPlayer?.name ?? "A rival commander"} is taking their turn</p><p className="mt-1 text-xs text-[var(--muted-ink)]">The campaign board updates as moves resolve.</p></section>}
           {!isParticipant && <p className={`${panel} text-sm text-[var(--muted-ink)]`}>Public view. Join this campaign to command an open nation.</p>}
           <section className={panel}><div className="mb-2 flex items-center justify-between"><p className="eyebrow">LATEST BATTLE</p>{game.lastBattle && <span className="text-xs text-[var(--muted-ink)]">Dice round {game.lastBattle.round}</span>}</div><BattleArena game={game} events={events} showCommentary={showCommentary} compact /></section>

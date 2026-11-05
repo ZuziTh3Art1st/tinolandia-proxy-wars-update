@@ -97,22 +97,22 @@ async function main() {
   // --- access control
   r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' } });
   ok('action without login -> 401', r.status === 401);
-  r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' } }, 'tok-u2');
+  r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' }, expectedVersion: 1 }, 'tok-u2');
   ok("another user cannot play my game -> 403", r.status === 403);
-  r = await call(actionRoute, { gameId: 'nope', action: { type: 'END_TURN' } }, 'tok-u1');
+  r = await call(actionRoute, { gameId: 'nope', action: { type: 'END_TURN' }, expectedVersion: 1 }, 'tok-u1');
   ok('unknown game -> 404', r.status === 404);
 
   // --- turn rules
   const humanFirst = currentPlayer(g).kind === 'human';
   if (humanFirst) {
-    r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' } }, 'tok-u1');
+    r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' }, expectedVersion: g.version }, 'tok-u1');
     ok('NPC_STEP on the human turn -> 409', r.status === 409);
-    r = await call(actionRoute, { gameId: id, action: { type: 'ROLL' } }, 'tok-u1');
+    r = await call(actionRoute, { gameId: id, action: { type: 'ROLL' }, expectedVersion: g.version }, 'tok-u1');
     ok('ROLL with no attack in progress -> 409', r.status === 409);
-    r = await call(actionRoute, { gameId: id, action: { type: 'TRANSFER', fromId: 'ZA', toId: 'ZA', count: 1 } }, 'tok-u1');
+    r = await call(actionRoute, { gameId: id, action: { type: 'TRANSFER', fromId: 'ZA', toId: 'ZA', count: 1 }, expectedVersion: g.version }, 'tok-u1');
     ok('invalid transfer rejected -> 400', r.status === 400);
   } else {
-    r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' } }, 'tok-u1');
+    r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' }, expectedVersion: g.version }, 'tok-u1');
     ok('human action on an NPC turn -> 409', r.status === 409);
   }
   r = await call(actionRoute, { gameId: id, action: { type: 'NPC_STEP' }, expectedVersion: 99 }, 'tok-u1');
@@ -136,7 +136,7 @@ async function main() {
     const v = g.version;
     const isNpc = currentPlayer(g).kind === 'npc';
     fastToggle = !fastToggle;
-    r = await call(actionRoute, { gameId: id, action: isNpc ? { type: 'NPC_STEP' } : pick(g), ...(isNpc ? { expectedVersion: v, fast: fastToggle } : {}) }, 'tok-u1');
+    r = await call(actionRoute, { gameId: id, action: isNpc ? { type: 'NPC_STEP' } : pick(g), expectedVersion: v, ...(isNpc ? { fast: fastToggle } : {}) }, 'tok-u1');
     if (r.status !== 200) { hardError = `${r.status} ${JSON.stringify(r.body)} during ${JSON.stringify(isNpc ? 'NPC_STEP' : pick(g))}`; break; }
     g = load(id);
     if (g.version !== v + 1 || r.body.version !== v + 1) versionOk = false;
@@ -152,14 +152,14 @@ async function main() {
   ok('Groq narration was stored on events and stripped of quotes', ai.length > 0 && ai.every((e) => e.commentary === 'AI says: steel meets steel.'), `(${ai.length} AI / ${battle.length - ai.length} template, ${groqCalls} Groq calls)`);
   ok('every NPC attack/skip decision has a justification', ev.filter((e) => ['ATTACK_START', 'TURN_END', 'REINFORCE'].includes(e.kind) && e.playerId.startsWith('npc')).every((e) => !!e.reason));
 
-  r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' } }, 'tok-u1');
+  r = await call(actionRoute, { gameId: id, action: { type: 'END_TURN' }, expectedVersion: g.version }, 'tok-u1');
   ok('actions on a finished game -> 409', r.status === 409);
 
   // --- Groq outage must not break the game
   (globalThis as any).fetch = async (url: any, init?: any) => (String(url).includes('api.groq.com/openai/v1/chat/completions') ? new Response('boom', { status: 500 }) : realFetch(url, init));
   r = await call(createRoute, { countryCode: 'US' }, 'tok-u1');
   let g2 = load(r.body.gameId), steps = 0;
-  while (g2.status === 'ACTIVE' && currentPlayer(g2).kind === 'npc' && steps++ < 40) { await call(actionRoute, { gameId: r.body.gameId, action: { type: 'NPC_STEP' } }, 'tok-u1'); g2 = load(r.body.gameId); }
+  while (g2.status === 'ACTIVE' && currentPlayer(g2).kind === 'npc' && steps++ < 40) { await call(actionRoute, { gameId: r.body.gameId, action: { type: 'NPC_STEP' }, expectedVersion: g2.version }, 'tok-u1'); g2 = load(r.body.gameId); }
   ok('game keeps working (template narration) when Groq errors', steps > 0 || currentPlayer(g2).kind === 'human');
 
   console.log(failures === 0 ? '\nALL API CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`);

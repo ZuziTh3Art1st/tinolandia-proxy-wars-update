@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const gameId: string = typeof body.gameId === 'string' ? body.gameId : '';
     const action = body.action as GameAction | undefined;
     const expectedVersion: number | undefined = typeof body.expectedVersion === 'number' ? body.expectedVersion : undefined;
-    if (!gameId || !action || typeof action.type !== 'string') throw new GameError('Bad request.');
+    if (!gameId || !action || typeof action.type !== 'string' || expectedVersion === undefined) throw new GameError('A game ID, valid action, and current campaign version are required.');
 
     const db = adminDb();
     const ref = db.collection('games').doc(gameId);
@@ -36,13 +36,15 @@ export async function POST(req: Request) {
       const snap = await tx.get(ref);
       if (!snap.exists) throw new GameError('Game not found.', 404);
       const game = snap.data() as GameState;
-      if (expectedVersion !== undefined && expectedVersion !== game.version) {
+      if (expectedVersion !== game.version) {
         throw new GameError('Game moved on.', 409, { stale: true });
       }
 
       if (action.type === 'NPC_STEP') {
-        const isParticipant = game.ownerUid === user.uid || (game.participantUids ?? []).includes(user.uid);
-        if (!isParticipant) throw new GameError('Join this campaign before running its rival commanders.', 403);
+        if (game.ownerUid !== user.uid) throw new GameError('Only the lobby host may advance NPC commanders.', 403);
+        if (currentPlayerId(game) === undefined || game.players.find((player) => player.id === currentPlayerId(game))?.kind !== 'npc') {
+          throw new GameError('NPC actions are only accepted during a rival commander’s turn.', 409);
+        }
       } else {
         const active = game.players.find((player) => player.id === currentPlayerId(game));
         const accountUid = active?.uid ?? (active?.id === 'player' ? game.ownerUid : undefined);

@@ -32,6 +32,8 @@ export const startLobbyApi = (gameId: string): Promise<{ ok: true }> => post('/a
 
 export const markGameAssistedApi = (gameId: string): Promise<{ ok: true }> => post('/api/game/assist', { gameId });
 
+export const diplomacyApi = (gameId: string, expectedVersion: number, operation: 'offer' | 'accept' | 'decline' | 'break', options: { targetPlayerId?: string; offerId?: string } = {}): Promise<{ ok: true }> => post('/api/game/diplomacy', { gameId, expectedVersion, operation, ...options });
+
 export const gameActionApi = (
   gameId: string,
   action: GameAction,
