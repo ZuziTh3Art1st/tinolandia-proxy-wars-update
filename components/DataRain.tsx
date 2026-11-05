@@ -24,7 +24,7 @@ interface EngineApi {
 
 type RGB = readonly [number, number, number];
 
-/* ───────────────────────────── constants ───────────────────────────── */
+/* Configuration values */
 
 const MAX = 7000; // particle capacity
 const L = 19; // history points per particle
@@ -55,7 +55,7 @@ const FIRE_P = 0.03 * STEP;
 const FIRE_DECAY = Math.exp(-STEP / 0.45);
 const PUFF_DECAY = Math.exp(-STEP / 1.1);
 
-/* ───────────────────────────── helpers ───────────────────────────── */
+/* Shared drawing and motion helpers */
 
 function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
@@ -112,7 +112,7 @@ const WAVE_0 = makeWave(380, 0.35, 0.18, 0.7, 16);
 const WAVE_1 = makeWave(620, 1.9, 0.27, 2.1, 13);
 const WAVE_2 = makeWave(900, 3.4, 0.35, 4.2, 10);
 
-/* ───────────────────────────── component ───────────────────────────── */
+/* Main animation component */
 
 export default function DataRain(props: DataRainProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -222,7 +222,7 @@ export default function DataRain(props: DataRainProps) {
     let slowFrames = 0;
     let fastFrames = 0;
 
-    /* ─────────────── styles & palette ─────────────── */
+    /* Colors and styles */
 
     const buildStyles = (): void => {
       const cs = getComputedStyle(root);
@@ -259,7 +259,7 @@ export default function DataRain(props: DataRainProps) {
       haloGradient = grad;
     };
 
-    /* ─────────────── particles ─────────────── */
+    /* Particle setup */
 
     const seedParticle = (i: number, uniform: boolean): void => {
       let x: number;
@@ -307,7 +307,7 @@ export default function DataRain(props: DataRainProps) {
       setActive(targetCount * quality, uniform);
     };
 
-    /* ─────────────── vortex puffs ─────────────── */
+    /* Vortex setup */
 
     const spawnPuff = (a: number, speed: number): void => {
       const dxn = vcx / speed;
@@ -323,7 +323,7 @@ export default function DataRain(props: DataRainProps) {
       pAlive[j] = 1;
     };
 
-    /* ─────────────── physics step ─────────────── */
+    /* Particle movement */
 
     const simulate = (): void => {
       const p = propsRef.current;
@@ -580,7 +580,7 @@ export default function DataRain(props: DataRainProps) {
       }
     };
 
-    /* ─────────────── rendering ─────────────── */
+    /* Drawing the animation */
 
     const render = (): void => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -665,7 +665,7 @@ export default function DataRain(props: DataRainProps) {
       bctx.drawImage(main, 0, 0, bw, bh);
     };
 
-    /* ─────────────── lifecycle helpers ─────────────── */
+    /* Animation lifecycle */
 
     const presim = (seconds: number): void => {
       const n = Math.round(seconds / STEP);
@@ -728,7 +728,7 @@ export default function DataRain(props: DataRainProps) {
       render();
     };
 
-    /* ─────────────── input ─────────────── */
+    /* Pointer and keyboard input */
 
     const onMove = (e: PointerEvent): void => {
       const r = root.getBoundingClientRect();
@@ -746,7 +746,7 @@ export default function DataRain(props: DataRainProps) {
       if (e.pointerType !== "mouse") onLeave();
     };
 
-    /* ─────────────── main loop ─────────────── */
+    /* Main animation loop */
 
     const frame = (now: number): void => {
       if (disposed) return;
@@ -809,7 +809,7 @@ export default function DataRain(props: DataRainProps) {
       }
     };
 
-    /* ─────────────── init ─────────────── */
+    /* Initialise the animation */
 
     resize();
     buildStyles();

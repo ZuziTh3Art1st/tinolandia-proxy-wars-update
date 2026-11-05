@@ -31,9 +31,7 @@ export const PLAYER_COLORS = [
 const NPC_NAMES = NPC_PROFILES.map((profile) => profile.name);
 export const HUMAN_ID = 'player';
 
-// ---------------------------------------------------------------------------
-// helpers
-// ---------------------------------------------------------------------------
+// Shared helpers for campaign actions.
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x));
 
 function shuffle<T>(arr: T[], rng: Rng): T[] {
@@ -77,9 +75,7 @@ function assertActive(s: GameState) {
   if (s.status !== 'ACTIVE') throw new GameError('This game is finished.', 409);
 }
 
-// ---------------------------------------------------------------------------
-// setup
-// ---------------------------------------------------------------------------
+// Set up a new campaign.
 export function createGame(opts: {
   ownerUid: string;
   ownerName: string;
@@ -153,9 +149,7 @@ export function createGame(opts: {
   return { state: s, events };
 }
 
-// ---------------------------------------------------------------------------
-// turn flow
-// ---------------------------------------------------------------------------
+// Move play through each commander's turn.
 function beginTurn(s: GameState, events: GameEvent[]) {
   const p = currentPlayer(s);
   s.attack = null;
@@ -194,9 +188,7 @@ function advanceTurn(s: GameState, events: GameEvent[]) {
   beginTurn(s, events);
 }
 
-// ---------------------------------------------------------------------------
-// primitive actions (shared by humans and NPCs)
-// ---------------------------------------------------------------------------
+// Actions that both players and NPCs can take.
 function doDeploy(s: GameState, events: GameEvent[], pid: string, allocations: Record<string, number>, reason?: string) {
   if (s.phase !== 'REINFORCE') throw new GameError('There is nothing to deploy right now.', 409);
   let total = 0;
@@ -388,9 +380,7 @@ function doEndTurn(s: GameState, events: GameEvent[], pid: string, reason?: stri
   advanceTurn(s, events);
 }
 
-// ---------------------------------------------------------------------------
-// public: human actions
-// ---------------------------------------------------------------------------
+// Actions available to the human commander.
 export function applyHumanAction(prev: GameState, action: HumanAction, rng: Rng = Math.random) {
   const s = clone(prev);
   const events: GameEvent[] = [];
@@ -423,9 +413,7 @@ export function applyHumanAction(prev: GameState, action: HumanAction, rng: Rng 
   return { state: s, events };
 }
 
-// ---------------------------------------------------------------------------
-// public: one NPC step (the client paces these so every move is visible)
-// ---------------------------------------------------------------------------
+// Advance one NPC action at a time so the client can show each move.
 export function npcStep(prev: GameState, rng: Rng = Math.random) {
   const s = clone(prev);
   const events: GameEvent[] = [];

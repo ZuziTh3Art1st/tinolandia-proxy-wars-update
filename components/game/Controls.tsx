@@ -26,7 +26,6 @@ const ghost = `${btn} border border-[var(--line)] bg-white text-[var(--ink)] hov
 const danger = `${btn} border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100`;
 const select = 'w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none min-h-[44px]';
 
-// ---------------------------------------------------------------------------
 function DeployPanel({ game, act, busy, selected, onSelect, playerId }: Pick<Props, 'game' | 'act' | 'busy' | 'playerId'> & { selected: string | null; onSelect: (code: string | null) => void }) {
   const mine = game.countries.filter((c) => c.ownerId === (playerId ?? HUMAN_ID));
   const [alloc, setAlloc] = useState<Record<string, number>>({});
@@ -66,7 +65,6 @@ function DeployPanel({ game, act, busy, selected, onSelect, playerId }: Pick<Pro
   );
 }
 
-// ---------------------------------------------------------------------------
 function TransferPanel({
   game,
   act,
@@ -128,7 +126,6 @@ function TransferPanel({
   );
 }
 
-// ---------------------------------------------------------------------------
 export function Controls(props: Props) {
   const { game, act, busy, selSource, selTarget, setSelSource, setSelTarget, autoRoll, setAutoRoll } = props;
   const playerId = props.playerId ?? HUMAN_ID;

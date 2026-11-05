@@ -55,11 +55,8 @@ export function resolveRound(attackerSoldiers: number, defenderSoldiers: number,
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// Win-probability estimate (used by the NPC brain).
-// P(attacker eventually conquers) if it keeps rolling until it wins or is left with 1.
-// Exact dynamic programming for normal-sized stacks, Monte Carlo for huge ones.
-// ---------------------------------------------------------------------------
+// Estimate the chance that an attack succeeds if it continues until conquest or withdrawal.
+// Use exact calculations for normal stacks and Monte Carlo estimates for very large ones.
 
 const P_WIN = 15 / 36; // P(a > b) for two d6
 const P_TIE = 6 / 36;

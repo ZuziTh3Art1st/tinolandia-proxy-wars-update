@@ -5,7 +5,7 @@
  * played through the routes, contiguous events, and the Groq commentary upgrade (mocked fetch).
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// ---------- in-memory Firestore ------------------------------------------------------------
+// Use an in-memory Firestore store for these route checks.
 const store = new Map<string, any>();
 const clone = (x: any) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
 class Ref {
@@ -48,7 +48,7 @@ store.set('privacy-notice-acknowledgements/u2', { noticeVersion: '2026-10-31-v1'
 const fbPath = require.resolve('../lib/server/firebaseAdmin');
 (require.cache as any)[fbPath] = { id: fbPath, filename: fbPath, loaded: true, exports: { adminDb: () => fakeDb, adminAuth: () => fakeAuth } };
 
-// ---------- mock Groq ------------------------------------------------------------------------
+// Stub Groq so the checks do not call the live service.
 process.env.GROQ_API_KEY = 'test-key';
 let groqCalls = 0;
 const realFetch = globalThis.fetch;

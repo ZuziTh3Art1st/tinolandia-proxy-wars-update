@@ -3,8 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/* ── the curved row ──────────────────────────────────────────────
- * Scroll Tilted Grid turned on its side, with the tilt drawn as a curve.
+/* The curved row uses the Scroll Tilted Grid layout with a curved tilt.
  * One row of images streams from right to left around the inside of a
  * cylinder. The centre faces you flat, the ends bend toward you so each
  * end image curves along its length, and the ends fade into the page.
@@ -20,8 +19,8 @@ import { cn } from "@/lib/utils";
  * is a static mask over it.
  *
  * The only JS is a ResizeObserver that sizes the loop, and a handler that
- * hands a tile its next image each time it wraps, out of sight.
- * ─────────────────────────────────────────────────────────────── */
+ * Each tile receives its next image as it wraps out of view.
+ */
 
 // Strips per tile. Each is a few degrees of arc, too little to read as a
 // facet; fewer starts to show corners along the top and bottom edges. A

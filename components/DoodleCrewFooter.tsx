@@ -294,7 +294,7 @@ const DEFAULT_DOODLES: DoodleKind[] = ["flame", "sandwich", "star", "flame", "he
 
 const ACCENT = { flame: "#ff7a1a", flameCore: "#ffd23f", gold: "#ffd23f", heart: "#ff5c7a", bread: "#f2c48d", crumb: "#fff1d6", leaf: "#5fb247", beak: "#ff9f1c", cap: "#ff4d4d" }
 
-// ---- the crew's drawings --------------------------------------------------------
+// Each crew member is drawn from a small set of shapes.
 // Each kind is drawn in its own units: base centre at (0, 0), up is negative,
 // about 144 units to a letter's cap height. Eyes are listed separately so the
 // renderer can aim and blink them.

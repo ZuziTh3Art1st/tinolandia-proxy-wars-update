@@ -395,7 +395,6 @@ export function fanSlot(index: number, count: number): number {
 
 const recipeOf = (art: ArtPreset | ArtRecipe): ArtRecipe => (typeof art === "string" ? ART_PRESETS[art] : art)
 
-// ---------------------------------------------------------------------------
 // One shared painter: every folder on the page queues its art here and the
 // queue spends a few milliseconds a frame, so a row of folders never janks.
 
@@ -494,7 +493,6 @@ function ArtCanvas({
   )
 }
 
-// ---------------------------------------------------------------------------
 // Geometry, in the folder's own units. The stage is drawn at 340 × 272 and
 // scaled to `width`, so the shapes can be fixed paths.
 
@@ -579,7 +577,7 @@ export default function GlassFolder({
   const k = width / W
   const density = Math.min(1.5, Math.max(1, typeof window === "undefined" ? 1 : window.devicePixelRatio || 1)) * k
 
-  // ---- entrance: assemble the first time the folder is on screen ----------
+  // Start the entrance animation when the folder first appears.
   React.useEffect(() => {
     if (!appear) return
     const el = rootRef.current
@@ -603,7 +601,7 @@ export default function GlassFolder({
     }
   }, [appear, appearDelay])
 
-  // ---- pointer: light and parallax follow the cursor, no re-renders -------
+  // Move the light and glass depth with the pointer without re-rendering.
   React.useEffect(() => {
     const el = rootRef.current
     if (!el) return
@@ -636,12 +634,12 @@ export default function GlassFolder({
     }
   }, [])
 
-  // ---- closed files are out of the tab order ------------------------------
+  // Keep closed folder contents out of keyboard navigation.
   React.useEffect(() => {
     filesRef.current?.toggleAttribute("inert", !open)
   }, [open])
 
-  // ---- Escape and a press outside close whatever is open ------------------
+  // Close the folder when Escape is pressed or the user clicks outside it.
   React.useEffect(() => {
     if (!open && !menuOpen) return
     const onKey = (e: KeyboardEvent) => {
@@ -994,7 +992,7 @@ canvas.gf-art[data-ready] { opacity: 1; filter: none; }
 .gf-back-rim path { stroke: rgba(255, 255, 255, .45); stroke-width: 1; }
 .gf-root[data-tone="dark"] .gf-back-rim path { stroke: rgba(255, 255, 255, .16); }
 
-/* ---- files ---------------------------------------------------------------- */
+/* Folder contents */
 .gf-files {
   position: absolute;
   inset: 0;
@@ -1119,7 +1117,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
   100% { translate: 0 0; rotate: 0deg; opacity: 1; }
 }
 
-/* ---- front glass ----------------------------------------------------------- */
+/* Front glass */
 .gf-front {
   position: absolute;
   left: 0;
@@ -1208,7 +1206,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
   to { opacity: 1; translate: 0 0; filter: blur(0); }
 }
 
-/* ---- the key: + or ··· ------------------------------------------------------ */
+/* Add and more buttons */
 .gf-key {
   all: unset;
   box-sizing: border-box;
@@ -1264,7 +1262,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-glyph--more { width: 30px; height: 12px; stroke-width: 1.7; }
 @keyframes gf-turn { from { rotate: -90deg; } to { rotate: 0deg; } }
 
-/* ---- menu ------------------------------------------------------------------- */
+/* Folder menu */
 .gf-menu {
   position: absolute;
   right: 22px;
@@ -1303,7 +1301,7 @@ canvas.gf-sheet-art[data-ready] { opacity: 1; filter: none; }
 .gf-menu-item--danger { color: #d92d20; }
 .gf-root[data-tone="dark"] .gf-menu-item--danger { color: #ff6b5e; }
 
-/* ---- entrance: the folder assembles itself ---------------------------------- */
+/* Entrance animation */
 .gf-root:not([data-entered]) .gf-back,
 .gf-root:not([data-entered]) .gf-back-rim { translate: 0 22px; opacity: 0; }
 .gf-root:not([data-entered]) .gf-sheet { translate: 0 -120px; opacity: 0; }

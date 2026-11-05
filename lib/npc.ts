@@ -34,9 +34,7 @@ function strongest(list: CountryState[]): CountryState {
   return [...list].sort((a, b) => b.soldiers - a.soldiers || b.initialSoldiers - a.initialSoldiers)[0];
 }
 
-// ---------------------------------------------------------------------------
-// Reinforcements
-// ---------------------------------------------------------------------------
+// Choose where the commander should place reinforcements.
 export function planReinforcements(
   countries: CountryState[],
   pid: string,
@@ -89,9 +87,7 @@ export function planReinforcements(
   return { allocations, reason: [head, ...notes].join('; ') + '.' };
 }
 
-// ---------------------------------------------------------------------------
-// Attack selection
-// ---------------------------------------------------------------------------
+// Choose a target for the next attack.
 export type AttackChoice =
   | { attack: true; sourceCode: string; targetCode: string; probability: number; reason: string }
   | { attack: false; reason: string };
@@ -142,9 +138,7 @@ export function chooseAttack(countries: CountryState[], pid: string, round: numb
   };
 }
 
-// ---------------------------------------------------------------------------
-// Continue or withdraw
-// ---------------------------------------------------------------------------
+// Decide whether to keep attacking or withdraw.
 export function shouldStopAttack(
   source: CountryState,
   target: CountryState,
@@ -166,9 +160,7 @@ export function shouldStopAttack(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Fortify: when dominating, spread soldiers so thin holdings cannot be retaken cheaply
-// ---------------------------------------------------------------------------
+// Spread troops across weak holdings when the commander has a strong lead.
 export function planFortify(
   countries: CountryState[],
   pid: string,
@@ -201,9 +193,7 @@ export function planFortify(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Garrison after a conquest
-// ---------------------------------------------------------------------------
+// Decide how many troops to move into a newly conquered country.
 export function planGarrison(
   source: CountryState,
   conquered: CountryState,

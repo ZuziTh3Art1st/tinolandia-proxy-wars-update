@@ -43,8 +43,8 @@ interface WavesProps {
 
 export function Waves({
     className = "",
-    strokeColor = "#ffffff",  // White lines
-    backgroundColor = "#000000",  // Black background
+    strokeColor = "#ffffff",
+    backgroundColor = "#000000",
     pointerSize = 0.5
 }: WavesProps) {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -62,27 +62,24 @@ export function Waves({
         set: false,
     })
     const pathsRef = useRef<SVGPathElement[]>([])
-    const linesRef = useRef<Point[][]>([])  // 替换any为Point[][]
-    const noiseRef = useRef<((x: number, y: number) => number) | null>(null)  // 替换any为具体的函数类型
+    const linesRef = useRef<Point[][]>([])
+    const noiseRef = useRef<((x: number, y: number) => number) | null>(null)
     const rafRef = useRef<number | null>(null)
     const boundingRef = useRef<DOMRect | null>(null)
     const visibleRef = useRef(false)
     const reducedMotionRef = useRef(false)
 
-    // Initialization
+    // Set up the noise field, draw the first frame, and watch for input.
     useEffect(() => {
         if (!containerRef.current || !svgRef.current) return
 
-        // Initialize noise generator
         noiseRef.current = createNoise2D()
         reducedMotionRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-        // Initialize size and lines
         setSize()
         setLines()
         drawLines()
 
-        // Bind events
         window.addEventListener('resize', onResize)
         window.addEventListener('mousemove', onMouseMove)
         containerRef.current.addEventListener('touchmove', onTouchMove, { passive: true })
@@ -114,7 +111,7 @@ export function Waves({
 
     const onVisibilityChange = () => syncAnimation()
 
-    // Set SVG size
+    // Keep the SVG aligned with its container.
     const setSize = () => {
         if (!containerRef.current || !svgRef.current) return
 
@@ -125,20 +122,20 @@ export function Waves({
         svgRef.current.style.height = `${height}px`
     }
 
-    // Setup lines - more points for smoother curves
+    // Rebuild the point grid whenever the container changes size.
     const setLines = () => {
         if (!svgRef.current || !boundingRef.current) return
 
         const { width, height } = boundingRef.current
         linesRef.current = []
 
-        // Clear existing paths
+        // Remove the old paths before drawing the new grid.
         pathsRef.current.forEach(path => {
             path.remove()
         })
         pathsRef.current = []
 
-        // Use smaller spacing to generate more lines and points for smoother results
+        // A tighter grid makes the curves smoother.
         const xGap = 14
         const yGap = 14
 
@@ -151,7 +148,7 @@ export function Waves({
         const xStart = (width - xGap * totalLines) / 2
         const yStart = (height - yGap * totalPoints) / 2
 
-        // Create vertical lines
+        // Build each vertical row of points and its SVG path.
         for (let i = 0; i < totalLines; i++) {
             const points: Point[] = []
 
@@ -166,7 +163,6 @@ export function Waves({
                 points.push(point)
             }
 
-            // Create SVG path
             const path = document.createElementNS(
                 'http://www.w3.org/2000/svg',
                 'path'
@@ -180,30 +176,29 @@ export function Waves({
             svgRef.current.appendChild(path)
             pathsRef.current.push(path)
 
-            // Add points
             linesRef.current.push(points)
         }
     }
 
-    // Resize handler
+    // Redraw the grid after the window changes size.
     const onResize = () => {
         setSize()
         setLines()
         drawLines()
     }
 
-    // Mouse handler
+    // Track pointer movement across the window.
     const onMouseMove = (e: MouseEvent) => {
         updateMousePosition(e.pageX, e.pageY)
     }
 
-    // Touch handler
+    // Track finger movement on touch screens.
     const onTouchMove = (e: TouchEvent) => {
         const touch = e.touches[0]
         updateMousePosition(touch.clientX, touch.clientY)
     }
 
-    // Update mouse position
+    // Convert pointer coordinates into the wave container's space.
     const updateMousePosition = (x: number, y: number) => {
         if (!boundingRef.current) return
 
@@ -220,14 +215,13 @@ export function Waves({
             mouse.set = true
         }
 
-        // Update CSS variables
         if (containerRef.current) {
             containerRef.current.style.setProperty('--x', `${mouse.sx}px`)
             containerRef.current.style.setProperty('--y', `${mouse.sy}px`)
         }
     }
 
-    // Move points - smoother wave motion
+    // Add gentle waves and let nearby points respond to pointer movement.
     const movePoints = (time: number) => {
         const { current: lines } = linesRef
         const { current: mouse } = mouseRef
@@ -237,16 +231,14 @@ export function Waves({
 
         lines.forEach((points) => {
             points.forEach((p: Point) => {
-                // Wave movement - reduced amplitude for smoother waves
                 const move = noise(
-                    (p.x + time * 0.008) * 0.003,  // Adjusted frequency
-                    (p.y + time * 0.003) * 0.002   // Adjusted frequency
-                ) * 8  // Reduced amplitude for smoother waves
+                    (p.x + time * 0.008) * 0.003,
+                    (p.y + time * 0.003) * 0.002
+                ) * 8
 
-                p.wave.x = Math.cos(move) * 12  // Reduced horizontal amplitude
-                p.wave.y = Math.sin(move) * 6   // Reduced vertical amplitude
+                p.wave.x = Math.cos(move) * 12
+                p.wave.y = Math.sin(move) * 6
 
-                // Mouse effect - smoother response
                 const dx = p.x - mouse.sx
                 const dy = p.y - mouse.sy
                 const d = Math.hypot(dx, dy)
@@ -256,26 +248,26 @@ export function Waves({
                     const s = 1 - d / l
                     const f = Math.cos(d * 0.001) * s
 
-                    p.cursor.vx += Math.cos(mouse.a) * f * l * mouse.vs * 0.00035  // Reduced influence
-                    p.cursor.vy += Math.sin(mouse.a) * f * l * mouse.vs * 0.00035  // Reduced influence
+                    p.cursor.vx += Math.cos(mouse.a) * f * l * mouse.vs * 0.00035
+                    p.cursor.vy += Math.sin(mouse.a) * f * l * mouse.vs * 0.00035
                 }
 
-                p.cursor.vx += (0 - p.cursor.x) * 0.01   // Increased restoration force
-                p.cursor.vy += (0 - p.cursor.y) * 0.01   // Increased restoration force
+                p.cursor.vx += (0 - p.cursor.x) * 0.01
+                p.cursor.vy += (0 - p.cursor.y) * 0.01
 
-                p.cursor.vx *= 0.95  // Increased smoothness
-                p.cursor.vy *= 0.95  // Increased smoothness
+                p.cursor.vx *= 0.95
+                p.cursor.vy *= 0.95
 
                 p.cursor.x += p.cursor.vx
                 p.cursor.y += p.cursor.vy
 
-                p.cursor.x = Math.min(50, Math.max(-50, p.cursor.x))  // Limited deformation range
-                p.cursor.y = Math.min(50, Math.max(-50, p.cursor.y))  // Limited deformation range
+                p.cursor.x = Math.min(50, Math.max(-50, p.cursor.x))
+                p.cursor.y = Math.min(50, Math.max(-50, p.cursor.y))
             })
         })
     }
 
-    // Get moved point coordinates
+    // Combine a point's base position with its wave and optional pointer offset.
     const moved = (point: Point, withCursorForce = true) => {
         const coords = {
             x: point.x + point.wave.x + (withCursorForce ? point.cursor.x : 0),
@@ -285,7 +277,7 @@ export function Waves({
         return coords
     }
 
-    // Draw lines - using line segments
+    // Connect each row of points to draw the animated wave.
     const drawLines = () => {
         const { current: lines } = linesRef
         const { current: paths } = pathsRef
@@ -293,11 +285,9 @@ export function Waves({
         lines.forEach((points, lIndex) => {
             if (points.length < 2 || !paths[lIndex]) return;
 
-            // First point
             const firstPoint = moved(points[0], false)
             let d = `M ${firstPoint.x} ${firstPoint.y}`
 
-            // Connect points with lines
             for (let i = 1; i < points.length; i++) {
                 const current = moved(points[i])
                 d += `L ${current.x} ${current.y}`
@@ -307,7 +297,7 @@ export function Waves({
         })
     }
 
-    // Animation logic
+    // Update the pointer state and redraw the wave for this frame.
     const tick = (time: number) => {
         if (!visibleRef.current || document.hidden || reducedMotionRef.current) {
             rafRef.current = null
@@ -315,11 +305,11 @@ export function Waves({
         }
         const { current: mouse } = mouseRef
 
-        // Smooth mouse movement
+        // Ease the pointer position so it moves smoothly.
         mouse.sx += (mouse.x - mouse.sx) * 0.1
         mouse.sy += (mouse.y - mouse.sy) * 0.1
 
-        // Mouse velocity
+        // Track pointer speed for the interaction response.
         const dx = mouse.x - mouse.lx
         const dy = mouse.y - mouse.ly
         const d = Math.hypot(dx, dy)
@@ -328,14 +318,12 @@ export function Waves({
         mouse.vs += (d - mouse.vs) * 0.1
         mouse.vs = Math.min(100, mouse.vs)
 
-        // Previous mouse position
+        // Save the current coordinates for the next frame.
         mouse.lx = mouse.x
         mouse.ly = mouse.y
 
-        // Mouse angle
         mouse.a = Math.atan2(dy, dx)
 
-        // Animation
         if (containerRef.current) {
             containerRef.current.style.setProperty('--x', `${mouse.sx}px`)
             containerRef.current.style.setProperty('--y', `${mouse.sy}px`)
