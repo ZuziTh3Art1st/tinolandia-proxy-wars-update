@@ -51,7 +51,7 @@ export function MyGames({ uid }: { uid: string }) {
         const gameHref = g.status === 'LOBBY' ? `/multiplayer/lobby/${g.id}` : `/game/${g.id}`;
         return (
           <li key={g.id} className="overflow-hidden rounded-md border border-[var(--line)] bg-white transition hover:border-[var(--accent)] hover:shadow-sm">
-            <Link href={gameHref} className="group flex min-h-[72px] items-center gap-2.5 p-3">
+            <Link href={gameHref} prefetch={false} aria-label={`${g.status === 'ACTIVE' ? 'Continue' : g.status === 'LOBBY' ? 'Open' : 'Review'} ${info?.name ?? myCountry} campaign`} className="group flex min-h-[72px] items-center gap-2.5 p-3">
               <Flag code={myCountry} size={40} className="h-7 w-10 shrink-0 rounded-sm" />
               <div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold">{info?.name ?? myCountry}</div><div className="mt-1 text-[11px] text-slate-500">Round {g.round}</div></div>
               <span aria-hidden="true" className="text-sm text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]">→</span>
@@ -59,7 +59,7 @@ export function MyGames({ uid }: { uid: string }) {
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--line)] bg-[#fbfcfb] px-3 py-2">
               <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${badge}`}>{label}</span>
               <span className="text-[10px] text-slate-500">{new Date(g.createdAt).toLocaleDateString()}</span>
-              {g.status !== 'LOBBY' && <Link href={`/game/${g.id}/replay`} className="ml-auto text-[10px] font-semibold text-[var(--accent-dark)] underline underline-offset-2">Replay</Link>}
+              {g.status !== 'LOBBY' && <Link prefetch={false} href={`/game/${encodeURIComponent(g.id)}/replay`} className="ml-auto text-[10px] font-semibold text-[var(--accent-dark)] underline underline-offset-2">Replay</Link>}
             </div>
           </li>
         );
