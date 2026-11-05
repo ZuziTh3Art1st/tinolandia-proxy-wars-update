@@ -26,6 +26,14 @@ export default function PlaythroughsPage() {
       [...owned, ...joined].forEach((game) => byId.set(game.id, game));
       setGames([...byId.values()]
         .filter((game) => game.status === "FINISHED")
+        .filter((game) => {
+          const commander = game.players.find((player) => player.uid === user.uid)
+            ?? game.players.find((player) => player.id === "player" && game.ownerUid === user.uid);
+          const countryCode = commander
+            ? game.startingCountries?.[commander.id] ?? game.humanCountry
+            : game.humanCountry;
+          return countryCode !== "AO";
+        })
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
     };
     const ownedQuery = query(collection(db, "games"), where("ownerUid", "==", user.uid));
