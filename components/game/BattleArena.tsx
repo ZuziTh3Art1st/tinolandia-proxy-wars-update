@@ -3,6 +3,7 @@
 import React from "react";
 import { GameEvent, GameState } from "@/lib/types";
 import { Flag } from "../Flag";
+import { CommentaryAudio } from "./CommentaryAudio";
 
 type Outcome = "win" | "lose" | "tie";
 
@@ -53,7 +54,7 @@ export function BattleArena({ game, events = [], showCommentary = true, compact 
         </div> : <p className="text-xs text-[var(--muted-ink)]">Dice are shown after the first roll.</p>}
       </div>
 
-      {showCommentary && commentary && <div className="rounded-md border border-[#d9e4df] bg-[#f1f6f3] px-3 py-2.5"><p className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-ink)]"><span>Battle commentary</span><span className={commentaryEvent?.commentarySource === "ai" ? "text-emerald-800" : "text-[var(--muted-ink)]"}>{commentaryEvent?.commentarySource === "ai" ? "Groq AI" : "Field report"}</span></p><p className="mt-1 text-sm leading-5 text-[var(--ink)]">{commentary}</p></div>}
+      {showCommentary && commentary && <div className="rounded-md border border-[#d9e4df] bg-[#f1f6f3] px-3 py-2.5"><div className="flex flex-wrap items-center justify-between gap-2"><p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-ink)]"><span>Battle commentary</span><span className={commentaryEvent?.commentarySource === "ai" ? "text-emerald-800" : "text-[var(--muted-ink)]"}>{commentaryEvent?.commentarySource === "ai" ? "Groq AI" : "Field report"}</span></p><CommentaryAudio text={commentary}/></div><p className="mt-1 text-sm leading-5 text-[var(--ink)]">{commentary}</p></div>}
     </div>
   );
 }
