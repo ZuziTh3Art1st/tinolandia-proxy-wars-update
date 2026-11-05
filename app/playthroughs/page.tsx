@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import SushiConveyorMenu from "@/components/SushiConveyorMenu";
+import type { ConveyorDish } from "@/components/SushiConveyorMenu";
 import { db } from "@/lib/firebase";
-import { getCountryInfo } from "@/lib/countries";
+import { getCountryInfo, flagUrl } from "@/lib/countries";
 import { useAuth } from "@/lib/AuthContext";
 import { GameState } from "@/lib/types";
-import { Flag } from "@/components/Flag";
 
 interface CampaignRow extends GameState { id: string }
 
 export default function PlaythroughsPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [games, setGames] = useState<CampaignRow[] | null>(null);
 
   useEffect(() => {
@@ -49,6 +52,29 @@ export default function PlaythroughsPage() {
     return () => { offOwned(); offJoined(); };
   }, [user]);
 
+  const victories = useMemo<ConveyorDish[]>(() => (games ?? []).map((game) => {
+    const commander = game.players.find((player) => player.uid === user?.uid)
+      ?? game.players.find((player) => player.id === "player" && game.ownerUid === user?.uid);
+    const countryCode = commander
+      ? game.startingCountries?.[commander.id] ?? game.humanCountry
+      : game.humanCountry;
+    const countries = game.startingCountries
+      ? Object.values(game.startingCountries)
+      : game.countries.map((country) => country.code);
+    const countryNames = [...new Set(countries)].map((code) => getCountryInfo(code)?.name ?? code);
+    const home = getCountryInfo(countryCode);
+    const victory = game.winnerId ? game.winnerId === commander?.id : game.outcome === "VICTORY";
+    return {
+      id: game.id,
+      name: home?.name ?? countryCode,
+      description: `${victory ? "Victory" : "Defeat"} in round ${game.round}. Select this wheel to open the full campaign replay.`,
+      price: `${victory ? "VICTORY" : "DEFEAT"} · R${game.round}`,
+      tier: victory ? 4 : 2,
+      image: flagUrl(countryCode, 160),
+      details: [...countryNames, `${game.players.length} commanders`, new Date(game.createdAt).toLocaleDateString()],
+    };
+  }), [games, user?.uid]);
+
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
@@ -65,35 +91,17 @@ export default function PlaythroughsPage() {
           <section className="mt-8 rounded-lg border border-[var(--line)] bg-white p-6"><h2 className="text-lg font-semibold">Sign in to view your archive</h2><p className="mt-2 text-sm text-[var(--muted-ink)]">Completed campaigns you started or joined appear here.</p><Link href="/login" className="mt-4 inline-flex rounded-md bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white">Commander sign in</Link></section>
         ) : games === null ? <p className="mt-8 text-sm text-[var(--muted-ink)]">Loading your playthroughs…</p> : games.length === 0 ? (
           <section className="mt-8 rounded-lg border border-dashed border-[var(--line)] bg-white/70 p-8 text-center"><p className="text-sm font-semibold">No completed campaigns yet</p><p className="mt-2 text-sm text-[var(--muted-ink)]">Your finished campaigns will appear here in date order.</p><Link href="/" className="mt-4 inline-flex rounded-md bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white">Start a campaign</Link></section>
-        ) : <section className="mt-6" aria-label="Completed campaigns">
-          <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">{games.length} completed {games.length === 1 ? "campaign" : "campaigns"}</h2><span className="text-xs text-[var(--muted-ink)]">Newest to oldest</span></div>
-          <ol className="max-h-[72vh] space-y-3 overflow-y-auto pr-1">
-            {games.map((game) => {
-              const myCommander = game.players.find((player) => player.uid === user.uid) ?? game.players.find((player) => player.id === "player" && game.ownerUid === user.uid);
-              const myCountryCode = myCommander ? game.startingCountries?.[myCommander.id] ?? game.humanCountry : game.humanCountry;
-              const home = getCountryInfo(myCountryCode);
-              const starts = game.startingCountries ? Object.values(game.startingCountries) : game.countries.map((country) => country.code);
-              const countries = [...new Set(starts)].map((code) => getCountryInfo(code)?.name ?? code);
-              const victory = game.winnerId ? game.winnerId === myCommander?.id : game.outcome === "VICTORY";
-              return <li key={game.id}>
-                <article className="rounded-lg border border-[var(--line)] bg-white p-4 shadow-sm sm:p-5">
-                  <div className="flex flex-wrap items-start gap-3">
-                    <Flag code={myCountryCode} size={80} className="h-10 w-14 shrink-0 rounded-sm shadow-sm" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1"><h3 className="text-base font-semibold">{home?.name ?? game.humanCountry}</h3><span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${victory ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-100 text-slate-700"}`}>{victory ? "Victory" : "Defeat"}</span>{game.multiplayer && <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">Multiplayer</span>}</div>
-                      <p className="mt-1 text-xs text-[var(--muted-ink)]">Round {game.round} · {game.players.length} commanders · {new Date(game.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <Link href={`/game/${encodeURIComponent(game.id)}/replay`} className="rounded-md bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-white">Open replay</Link>
-                  </div>
-                  <details className="mt-4 border-t border-[var(--line)] pt-3">
-                    <summary className="cursor-pointer text-xs font-semibold text-[var(--accent-dark)]">Starting nations ({countries.length})</summary>
-                    <ul className="mt-2 flex flex-wrap gap-1.5">{countries.map((country) => <li key={country} className="rounded-full border border-[var(--line)] bg-[#f8f9f8] px-2.5 py-1 text-[10px] text-[var(--muted-ink)]">{country}</li>)}</ul>
-                  </details>
-                </article>
-              </li>;
-            })}
-          </ol>
-        </section>}
+        ) : <div className="mt-6 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
+          <SushiConveyorMenu
+            items={victories}
+            eyebrow="CAMPAIGN ARCHIVE"
+            heading="Victories"
+            caption="Each rotating plate shows the nation you commanded. Browse from newest to oldest, then open a plate to replay the campaign and see all starting nations."
+            speed={14}
+            labels={{ add: "Open replay", close: "Close", previous: "Previous campaign", next: "Next campaign", pause: "Pause archive" }}
+            onAdd={(item) => router.push(`/game/${encodeURIComponent(item.id)}/replay`)}
+          />
+        </div>}
       </div>
     </main>
   );
