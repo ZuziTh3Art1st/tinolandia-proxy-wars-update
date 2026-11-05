@@ -37,78 +37,6 @@ In multiplayer, the lobby host starts the game after players join. Unfilled comm
 | Optional battle narration | Groq API |
 | Hosting | Vercel |
 
-## Run locally
-
-### Requirements
-
-- Node.js 20.9 or newer
-- npm
-- A Firebase project with Authentication and Cloud Firestore enabled
-- A Firebase service account for the server API
-- A Groq API key only if you want AI battle narration; it is optional
-
-### Setup
-
-1. Clone the repository and install dependencies:
-
-   ```bash
-   git clone https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update.git
-   cd tinolandia-proxy-wars-update
-   npm install
-   ```
-
-2. Copy `.env.example` to `.env.local` and set the Firebase Admin credentials:
-
-   ```dotenv
-   FIREBASE_ADMIN_CLIENT_EMAIL=your-service-account-email
-   FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-   ```
-
-   `FIREBASE_ADMIN_PROJECT_ID` is optional if the project ID can be inferred from the public Firebase configuration. Keep `.env.local` private and never commit service account credentials.
-
-3. For AI narration, optionally add:
-
-   ```dotenv
-   GROQ_API_KEY=your-groq-api-key
-   GROQ_MODEL=openai/gpt-oss-20b
-   ```
-
-4. Configure Firebase Authentication providers (Email/Password and Google), add your local and deployed domains to the Firebase authorized domains list, and publish the repository’s `firestore.rules` to Cloud Firestore.
-
-5. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-   Open <http://localhost:3000>.
-
-## Environment variables
-
-| Variable | Required | Purpose |
-|---|---:|---|
-| `FIREBASE_ADMIN_CLIENT_EMAIL` | Yes | Firebase service account email for server-side operations |
-| `FIREBASE_ADMIN_PRIVATE_KEY` | Yes | Firebase service account private key; keep secret |
-| `FIREBASE_ADMIN_PROJECT_ID` | Optional | Explicit Firebase project ID for the Admin SDK |
-| `GROQ_API_KEY` | No | Enables Groq battle narration; built in narration is used otherwise |
-| `GROQ_MODEL` | No | Groq model name; defaults to `openai/gpt-oss-20b` |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Usually no | Override the app’s configured Firebase web API key |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Usually no | Override the app’s configured Firebase project ID |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Usually no | Override the app’s Firebase Authentication domain |
-
-The `NEXT_PUBLIC_` values are browser configuration, not server secrets. Never expose Firebase Admin credentials or Groq keys in client code.
-
-## Useful commands
-
-```bash
-npm run dev        # Run the development server
-npm run build      # Create a production build
-npm run start      # Serve a production build
-npm run typecheck  # Run TypeScript checks
-npm run simulate   # Simulate campaigns and check game invariants
-npm run test:api   # Exercise API routes and game access rules
-```
-
 ## Architecture and security
 
 - `lib/engine.ts`, `lib/rules.ts`, and `lib/npc.ts` implement the game state transitions, combat rules, and NPC strategy.
@@ -136,7 +64,17 @@ scripts/                     Simulation and API verification scripts
 
 ## Deployment
 
-The project is configured for Vercel. Set the Firebase Admin environment variables in the Vercel project settings (and `GROQ_API_KEY` if desired), ensure the deployed domain is authorized in Firebase Authentication, and deploy the `main` branch. Confirm the deployment build succeeds before sharing it.
+The application is deployed on Vercel. Its production environment uses Firebase Authentication, Cloud Firestore, and Firebase Admin credentials for server-side game operations. Groq credentials are optional; built in battle narration remains available when Groq is not configured.
+
+| Vercel environment variable | Purpose |
+|---|---|
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Firebase service account email used by server routes |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Secret Firebase service account private key |
+| `FIREBASE_ADMIN_PROJECT_ID` | Optional explicit project ID for the Admin SDK |
+| `GROQ_API_KEY` | Optional key for AI battle narration |
+| `GROQ_MODEL` | Optional narration model name; defaults to `openai/gpt-oss-20b` |
+
+Firebase Authentication must have the deployed domain authorized, and the repository’s `firestore.rules` must be published to Cloud Firestore. Keep Admin and Groq credentials private.
 
 ## Known limitations and review notes
 
@@ -147,4 +85,4 @@ The project is configured for Vercel. Set the Firebase Admin environment variabl
 
 ## Assessment brief coverage
 
-The app includes the core campaign loop, authentication, a NoSQL database, server-side game actions, input validation, battle and NPC behavior, a live UI, and additional campaign, tutorial, replay, achievement, and multiplayer features. `npm run typecheck`, `npm run simulate`, and `npm run test:api` provide local verification. These checks do not replace a manual review of deployed Firebase settings, multiplayer behavior across separate accounts, or the completed privacy notice. Marks depend on the examiner’s review; this README does not claim a particular score or full compliance.
+The app includes the core campaign loop, authentication, a NoSQL database, server-side game actions, input validation, battle and NPC behavior, a live UI, and additional campaign, tutorial, replay, achievement, and multiplayer features. Deployed Firebase configuration, multiplayer behavior across separate accounts, and the unfinished privacy notice still need review. Marks depend on the examiner’s review; this README does not claim a particular score or full compliance.
