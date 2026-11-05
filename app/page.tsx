@@ -8,7 +8,6 @@ import { MyGames } from "@/components/MyGames";
 import { createGameApi } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { getCountryInfo } from "@/lib/countries";
-import { OpeningLogo } from "@/components/OpeningLogo";
 import { WorldBriefingHero } from "@/components/WorldBriefingHero";
 
 const NPC_SETTINGS_KEY = "tinolandia-npc-settings-v1";
@@ -70,14 +69,13 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen px-5 py-8 sm:px-8 lg:px-12">
-      <OpeningLogo />
       <div className="mx-auto max-w-7xl">
         <WorldBriefingHero />
 
         <nav aria-label="Campaign preparation" className="mb-3 flex flex-wrap items-center gap-2">
           <Link href="/tutorial" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Play the strategy tutorial</Link>
           <Link href="/commanders" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Configure rival commanders</Link>
-          <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Old campaigns</Link>
+          <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Old victories</Link>
           <Link href="/achievements" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Achievements</Link>
           <Link href="/multiplayer" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Multiplayer guide</Link>
         </nav>

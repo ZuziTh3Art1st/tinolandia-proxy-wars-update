@@ -17,7 +17,7 @@ export default function AchievementsPage() {
         label="Buzuzi · Tinolandia"
         meta="Cape Town · Campaign honours"
         columns={[
-          { title: "Campaign", links: [{ label: "Campaign desk", href: "/" }, { label: "Old campaigns", href: "/playthroughs" }] },
+          { title: "Campaign", links: [{ label: "Campaign desk", href: "/" }, { label: "Old victories", href: "/playthroughs" }] },
           { title: "Command", links: [{ label: "Rival commanders", href: "/commanders" }, { label: "Multiplayer", href: "/multiplayer" }] },
           { title: "Collection", links: [{ label: "Achievement archive", href: "#achievement-list" }, { label: "GitHub", href: "https://github.com/ZuziTh3Art1st/tinolandia-proxy-wars-update" }] },
         ]}

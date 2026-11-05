@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Waves } from "@/components/Waves";
+import { VictoryCelebration } from "@/components/game/VictoryCelebration";
 
 const steps = ["Briefing", "Reinforce", "Choose a target", "Resolve the battle", "Secure the territory"];
 const pipMap: Record<number, number[]> = { 1: [5], 2: [1,9], 3: [1,5,9], 4: [1,3,7,9], 5: [1,3,5,7,9], 6: [1,3,4,6,7,9] };
 function PracticeDie({ value, label }: { value: number; label: string }) { return <div className="flex flex-col items-center gap-2"><div className="battle-die battle-die--win" aria-label={`${label} rolled ${value}`}><div className="battle-die__top"/><div className="battle-die__side"/><div className="battle-die__front">{Array.from({length:9},(_,i)=><span key={i} className={pipMap[value].includes(i+1)?"battle-die__pip":""}/>)}</div></div><span className="text-xs text-[var(--muted-ink)]">{label}: {value}</span></div> }
 
 export default function TutorialPage() {
-  const [step,setStep] = useState(0); const [reinforce,setReinforce] = useState(2); const [target,setTarget] = useState<"Nepal"|"Oman"|null>(null); const [rolled,setRolled] = useState(false); const [garrison,setGarrison] = useState(1);
+  const [step,setStep] = useState(0); const [reinforce,setReinforce] = useState(2); const [target,setTarget] = useState<"Nepal"|"Oman"|null>(null); const [rolled,setRolled] = useState(false); const [garrison,setGarrison] = useState(1); const [completionDismissed,setCompletionDismissed] = useState(false);
   const next = () => setStep((value)=>Math.min(4,value+1));
   const targetOdds = target === "Nepal" ? "about 80%" : "about 35%";
-  return <main className="min-h-screen px-5 py-8 sm:px-8"><div className="mx-auto max-w-5xl">
+  return <><main className="min-h-screen px-5 py-8 sm:px-8"><div className="mx-auto max-w-5xl">
     <header className="flex items-center justify-between border-b border-[var(--line)] pb-5"><div><p className="eyebrow">PRACTICE CAMPAIGN · 5 MINUTES</p><h1 className="section-title mt-1 text-2xl">Field briefing</h1></div><Link href="/" className="rounded-md border border-[var(--line)] px-3 py-2 text-sm">Exit tutorial</Link></header>
     <section aria-label="Tinolandia campaign atmosphere" className="relative isolate my-6 min-h-52 overflow-hidden rounded-xl border border-[#43616a] bg-[#091b22] px-5 py-6 text-white sm:min-h-56 sm:px-8 sm:py-8">
       <Waves className="opacity-80" strokeColor="rgba(207, 174, 103, .48)" backgroundColor="#091b22" pointerSize={0.6} />
@@ -34,5 +35,5 @@ export default function TutorialPage() {
       </section>
       <aside className="space-y-4"><section className="rounded-lg border border-[var(--line)] bg-white p-5"><p className="eyebrow">STRATEGY NOTES</p><ul className="mt-3 space-y-3 text-sm leading-5 text-[var(--muted-ink)]"><li><strong className="text-[var(--ink)]">Force concentration:</strong> a strong attacking base can make an otherwise risky move viable.</li><li><strong className="text-[var(--ink)]">Read the odds:</strong> probability estimates describe risk; dice can still surprise you.</li><li><strong className="text-[var(--ink)]">Protect gains:</strong> conquest bonuses help, but newly taken countries may be vulnerable.</li><li><strong className="text-[var(--ink)]">Pace yourself:</strong> one attack per turn means timing matters.</li></ul></section><section className="rounded-lg border border-[var(--line)] bg-[#eef3f1] p-5"><p className="eyebrow">PRACTICE BOARD</p><div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">{[["Sudan","1"],["Eritrea",String(step>=1?5+reinforce:5)],["Nepal",String(rolled?1:2)],["Oman","6"],["Ethiopia","3"],["Kenya","2"]].map(([name,count])=><div key={name} className={`tutorial-piece ${target===name?"border-[var(--accent)]":"border-[var(--line)]"}`}><span className="block font-semibold">{name}</span><span key={count} className="tutorial-piece-count mt-1 block text-lg">{count}</span></div>)}</div><p className="mt-3 text-[10px] leading-4 text-[var(--muted-ink)]">Tutorial pieces only. This small exercise is separate from saved campaigns.</p></section></aside>
     </div>
-  </div></main>;
+  </div></main>{step===4&&!completionDismissed&&<VictoryCelebration mode="tutorial" onClose={()=>setCompletionDismissed(true)}/>}</>;
 }

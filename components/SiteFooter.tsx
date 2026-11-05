@@ -20,7 +20,7 @@ export function SiteFooter() {
           title: "Campaign desk",
           links: [
             { label: "Field briefing", href: "/tutorial" },
-            { label: "Old campaigns", href: "/playthroughs" },
+            { label: "Old victories", href: "/playthroughs" },
             { label: "Achievements", href: "/achievements" },
             { label: "Rival commanders", href: "/commanders" },
             { label: "Multiplayer campaigns", href: "/multiplayer" },
@@ -36,7 +36,7 @@ export function SiteFooter() {
         },
       ]}
       actions={[
-        { label: "Browse old campaigns", href: "/playthroughs", icon: "star", variant: "solid" },
+        { label: "Browse old victories", href: "/playthroughs", icon: "star", variant: "solid" },
         { label: "Meet the commanders", href: "/commanders", icon: "plane", variant: "outline" },
       ]}
       copyright="© 2026 Ashley Tinotenda Buzuzi · Proudly made in Cape Town, South Africa"

@@ -79,7 +79,7 @@ export default function PlaythroughsPage() {
     <main className="min-h-screen px-5 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-5">
-          <div><p className="eyebrow">CAMPAIGN ARCHIVE</p><h1 className="section-title mt-1 text-3xl">Old campaigns</h1><p className="mt-2 text-sm text-[var(--muted-ink)]">Every completed operation, newest first.</p></div>
+          <div><p className="eyebrow">CAMPAIGN ARCHIVE</p><h1 className="section-title mt-1 text-3xl">Old victories</h1><p className="mt-2 text-sm text-[var(--muted-ink)]">Every completed operation, newest first.</p></div>
           <Link href="/" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm">Back to campaign desk</Link>
         </header>
         <nav aria-label="Campaign tools" className="mt-5 flex flex-wrap gap-2 text-xs">
