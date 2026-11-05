@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 export function SiteFooter() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
-  if (pathname === "/login" || (pathname === "/" && (loading || !user))) return null;
+  if (pathname === "/login" || pathname === "/achievements" || (pathname === "/" && (loading || !user))) return null;
 
   return (
     <DoodleCrewFooter
@@ -21,6 +21,7 @@ export function SiteFooter() {
           links: [
             { label: "Field briefing", href: "/tutorial" },
             { label: "Old campaigns", href: "/playthroughs" },
+            { label: "Achievements", href: "/achievements" },
             { label: "Rival commanders", href: "/commanders" },
             { label: "Multiplayer campaigns", href: "/multiplayer" },
           ],

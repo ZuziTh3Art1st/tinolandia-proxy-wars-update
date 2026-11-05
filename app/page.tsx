@@ -78,6 +78,7 @@ export default function HomePage() {
           <Link href="/tutorial" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Play the strategy tutorial</Link>
           <Link href="/commanders" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Configure rival commanders</Link>
           <Link href="/playthroughs" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Old campaigns</Link>
+          <Link href="/achievements" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Achievements</Link>
           <Link href="/multiplayer" className="rounded-md border border-[var(--line)] bg-white px-3 py-2 text-xs font-semibold text-[var(--ink)] transition hover:border-[var(--accent)]">Multiplayer guide</Link>
         </nav>
 

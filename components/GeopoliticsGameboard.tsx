@@ -15,7 +15,6 @@ import { CampaignMap } from "@/components/game/CampaignMap";
 import { CampaignShare } from "@/components/game/CampaignShare";
 import { MultiplayerLobby } from "@/components/game/MultiplayerLobby";
 import { Flag } from "@/components/Flag";
-import { AchievementsBoard } from "@/components/game/AchievementsBoard";
 import { Leaderboard } from "@/components/game/Leaderboard";
 import { recordCampaignResult } from "@/lib/leaderboard";
 
@@ -121,7 +120,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
       {error && <p role="alert" className="rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
       <section className={`${panel} flex flex-wrap items-center justify-between gap-2 py-3`}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1"><p className="eyebrow">ROUND {game.round}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-ink)]">{game.phase.replaceAll("_", " ")}</p><span className="text-xs text-[var(--line)]">/</span><p className="text-sm text-[var(--ink)]">{turnPlayer?.name ?? "Campaign complete"}{isHumanTurn ? " · your turn" : turnPlayer?.kind === "human" ? " · player turn" : " · NPC turn"}</p></div>
-        <div className="flex flex-wrap items-center gap-3"><p className="text-xs text-[var(--muted-ink)]">{game.countries.length} nations · {game.players.filter((p) => !p.eliminated).length} commanders active</p><button type="button" role="switch" aria-checked={showCommentary} onClick={toggleCommentary} className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${showCommentary ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-slate-300 bg-slate-100 text-slate-600"}`}>Commentary {showCommentary ? "on" : "off"}</button></div>
+        <div className="flex flex-wrap items-center gap-3"><p className="text-xs text-[var(--muted-ink)]">{game.countries.length} nations · {game.players.filter((p) => !p.eliminated).length} commanders active</p><Link href="/achievements" className="rounded-full border border-[var(--line)] bg-white px-3 py-1.5 text-[11px] font-medium text-[var(--ink)] hover:border-[var(--accent)]">Achievements</Link><button type="button" role="switch" aria-checked={showCommentary} onClick={toggleCommentary} className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${showCommentary ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-slate-300 bg-slate-100 text-slate-600"}`}>Commentary {showCommentary ? "on" : "off"}</button></div>
       </section>
       <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.45fr)_minmax(340px,.9fr)]">
         <div className="space-y-4">
@@ -153,7 +152,6 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
                 <p className="mt-2 text-[11px] leading-5 text-[var(--muted-ink)]">Formations earn a field rank for every three battle rounds they take part in. Use the level selector to review them. Ranks are campaign records and do not change the exam's dice rules.</p>
                 {veteranRecords.length ? <ul className="mt-3 space-y-2">{veteranRecords.slice(0, 6).map(({ country, experience, level, rank }) => <li key={country.code} className="flex items-center gap-2 rounded-md border border-[var(--line)] bg-white px-2.5 py-2"><Flag code={country.code} size={40} className="h-4 w-6 shrink-0"/><span className="min-w-0 flex-1 truncate text-xs font-medium">{country.name}</span><span className="text-[10px] text-[var(--muted-ink)]">{experience} rounds</span><span className="rounded-full bg-[#eef3f0] px-2 py-1 text-[9px] font-semibold text-[var(--accent-dark)]">Lv {level} · {rank}</span></li>)}</ul> : <p className="mt-3 rounded-md bg-[#f7f8f7] px-3 py-2.5 text-xs text-[var(--muted-ink)]">Formation records appear after your first battle round.</p>}
               </section>
-              <AchievementsBoard />
               <CampaignShare campaignId={gameId}/>
             </div>
           </details>

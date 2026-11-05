@@ -1,13 +1,66 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { collection, doc, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, doc, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { GameEvent, GameState } from "@/lib/types";
+import type { BattleSnapshot, EventKind, GameEvent, GameState } from "@/lib/types";
 import { BattleArena } from "@/components/game/BattleArena";
+import { getCountryInfo } from "@/lib/countries";
 
 const panel = "rounded-lg border border-[var(--line)] bg-white p-4 shadow-[0_2px_10px_rgba(28,45,46,.035)] sm:p-5";
+const EVENT_KINDS = new Set<EventKind>(["SYSTEM", "TURN_START", "REINFORCE", "TRANSFER", "ATTACK_START", "BATTLE_ROUND", "CONQUEST", "ATTACK_FAILED", "ATTACK_STOPPED", "TURN_END", "ELIMINATED", "GAME_OVER"]);
+
+function finiteNumber(value: unknown, fallback: number) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeBattle(value: unknown, seq: number): BattleSnapshot | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const raw = value as Partial<BattleSnapshot>;
+  return {
+    seq: finiteNumber(raw.seq, seq), round: finiteNumber(raw.round, 1),
+    attackerCode: String(raw.attackerCode ?? ""), defenderCode: String(raw.defenderCode ?? ""),
+    attackerName: String(raw.attackerName ?? "Attacker"), defenderName: String(raw.defenderName ?? "Defender"),
+    attackerOwnerName: String(raw.attackerOwnerName ?? "Commander"), defenderOwnerName: String(raw.defenderOwnerName ?? "Commander"),
+    attackerDice: Array.isArray(raw.attackerDice) ? raw.attackerDice : [], defenderDice: Array.isArray(raw.defenderDice) ? raw.defenderDice : [],
+    attackerLosses: finiteNumber(raw.attackerLosses, 0), defenderLosses: finiteNumber(raw.defenderLosses, 0),
+    attackerBefore: finiteNumber(raw.attackerBefore, 0), defenderBefore: finiteNumber(raw.defenderBefore, 0),
+    attackerAfter: finiteNumber(raw.attackerAfter, 0), defenderAfter: finiteNumber(raw.defenderAfter, 0),
+    conquered: raw.conquered === true, failed: raw.failed === true, bonusSoldiers: finiteNumber(raw.bonusSoldiers, 0),
+  };
+}
+
+function normalizeEvent(value: unknown, index: number, documentId?: string): GameEvent {
+  const raw = typeof value === "object" && value !== null ? value as Record<string, unknown> : { text: value };
+  const idSequence = documentId && /^\d+$/.test(documentId) ? Number(documentId) : NaN;
+  const seq = finiteNumber(raw.seq, Number.isFinite(idSequence) ? idSequence : index + 1);
+  const kind = typeof raw.kind === "string" && EVENT_KINDS.has(raw.kind as EventKind) ? raw.kind as EventKind : "SYSTEM";
+  const battle = normalizeBattle(raw.battle, seq);
+  return {
+    seq,
+    ts: typeof raw.ts === "string" ? raw.ts : typeof raw.createdAt === "string" ? raw.createdAt : "",
+    round: finiteNumber(raw.round, 1),
+    playerId: String(raw.playerId ?? raw.actorId ?? "system"),
+    kind,
+    text: String(raw.text ?? raw.message ?? raw.description ?? "Campaign event"),
+    ...(typeof raw.reason === "string" ? { reason: raw.reason } : {}),
+    ...(typeof raw.commentary === "string" ? { commentary: raw.commentary } : {}),
+    ...(raw.commentarySource === "ai" || raw.commentarySource === "template" ? { commentarySource: raw.commentarySource } : {}),
+    ...(battle ? { battle } : {}),
+  };
+}
+
+function eventList(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
+      .map(([, event]) => event);
+  }
+  return [];
+}
 
 export function CampaignReplay({ gameId }: { gameId: string }) {
   const [game, setGame] = useState<GameState | null>(null);
@@ -15,15 +68,39 @@ export function CampaignReplay({ gameId }: { gameId: string }) {
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const legacyEventsRef = useRef<unknown[]>([]);
+  const eventSnapshotReadyRef = useRef(false);
+  const hasEventDocumentsRef = useRef(false);
 
   useEffect(() => {
+    setStatus("loading");
+    setGame(null);
+    setEvents([]);
+    setIndex(0);
+    setPlaying(false);
+    legacyEventsRef.current = [];
+    eventSnapshotReadyRef.current = false;
+    hasEventDocumentsRef.current = false;
     const offGame = onSnapshot(doc(db, "games", gameId), (snapshot) => {
       if (!snapshot.exists()) { setStatus("missing"); return; }
-      setGame(snapshot.data() as GameState);
+      const data = snapshot.data() as GameState & { events?: unknown; history?: unknown };
+      setGame({ ...data, countries: Array.isArray(data.countries) ? data.countries : [], players: Array.isArray(data.players) ? data.players : [] });
+      const inlineEvents = eventList(data.events);
+      const fallback = inlineEvents.length ? inlineEvents : eventList(data.history);
+      legacyEventsRef.current = fallback;
+      if (eventSnapshotReadyRef.current && !hasEventDocumentsRef.current) {
+        setEvents(fallback.map((entry, index) => normalizeEvent(entry, index)).sort((a, b) => a.seq - b.seq));
+      }
       setStatus("ready");
     }, () => setStatus("error"));
-    const offEvents = onSnapshot(query(collection(db, "games", gameId, "events"), orderBy("seq", "asc")), (snapshot) => {
-      setEvents(snapshot.docs.map((entry) => entry.data() as GameEvent));
+    const offEvents = onSnapshot(query(collection(db, "games", gameId, "events")), (snapshot) => {
+      eventSnapshotReadyRef.current = true;
+      hasEventDocumentsRef.current = !snapshot.empty;
+      if (snapshot.empty) {
+        setEvents(legacyEventsRef.current.map((entry, index) => normalizeEvent(entry, index)).sort((a, b) => a.seq - b.seq));
+        return;
+      }
+      setEvents(snapshot.docs.map((entry, index) => normalizeEvent(entry.data(), index, entry.id)).sort((a, b) => a.seq - b.seq));
     }, () => setStatus("error"));
     return () => { offGame(); offEvents(); };
   }, [gameId]);
@@ -43,6 +120,7 @@ export function CampaignReplay({ gameId }: { gameId: string }) {
   const eventActor = event ? game?.players.find((player) => player.id === event.playerId) : undefined;
   const eventHeading = event?.kind === "BATTLE_ROUND" ? "Battle resolved" : event?.kind === "CONQUEST" ? "Territory conquered" : event?.kind === "ATTACK_FAILED" ? "Attack repelled" : event?.kind === "ELIMINATED" ? "Commander eliminated" : event?.kind === "GAME_OVER" ? "Campaign result" : event?.kind.replaceAll("_", " ").toLowerCase() ?? "Campaign event";
   const replayState = useMemo(() => game && event?.battle ? { ...game, attack: null, lastBattle: event.battle } : null, [event, game]);
+  const playedNation = game?.countries.find((country) => country.code === game.humanCountry)?.name ?? getCountryInfo(game?.humanCountry ?? "")?.name ?? game?.humanCountry;
 
   if (status === "loading") return <p className="py-12 text-center text-sm text-[var(--muted-ink)]">Loading campaign replay…</p>;
   if (status === "missing" || status === "error" || !game) return <div className={`${panel} text-center`}><p className="text-sm">{status === "missing" ? "This campaign could not be found." : "The campaign history could not be loaded."}</p><Link href="/" className="mt-3 inline-block text-sm text-[var(--accent-dark)] underline">Return to campaign desk</Link></div>;
@@ -50,7 +128,7 @@ export function CampaignReplay({ gameId }: { gameId: string }) {
   return (
     <div className="space-y-4">
       <section className={`${panel} flex flex-wrap items-center justify-between gap-3`}>
-        <div><p className="eyebrow">MATCH REPLAY</p><h2 className="section-title mt-1">Round-by-round campaign history</h2><p className="mt-1 text-xs text-[var(--muted-ink)]">{game.countries.find((country) => country.code === game.humanCountry)?.name ?? game.humanCountry} · {events.length} recorded events · {game.status === "FINISHED" ? game.outcome === "VICTORY" ? "Victory" : "Defeat" : "In progress"}</p></div>
+        <div><p className="eyebrow">MATCH REPLAY</p><h2 className="section-title mt-1">Round-by-round campaign history</h2><p className="mt-1 text-xs text-[var(--muted-ink)]">{playedNation} · {events.length} recorded events · {game.status === "FINISHED" ? game.outcome === "VICTORY" ? "Victory" : "Defeat" : "In progress"}</p></div>
         <Link href={`/game/${gameId}`} className="rounded-md border border-[var(--line)] px-3 py-2 text-xs font-medium text-[var(--ink)] hover:border-[var(--accent)]">Return to campaign</Link>
       </section>
 
