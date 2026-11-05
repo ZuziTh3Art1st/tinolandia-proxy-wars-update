@@ -18,6 +18,7 @@ import { Flag } from "@/components/Flag";
 import { Leaderboard } from "@/components/game/Leaderboard";
 import { GameCommandOverview } from "@/components/game/GameCommandOverview";
 import { TacticalTipGuide } from "@/components/game/TacticalTipGuide";
+import { VictoryCelebration } from "@/components/game/VictoryCelebration";
 import { recordCampaignResult } from "@/lib/leaderboard";
 import { recordGameResult } from "@/lib/achievements";
 
@@ -34,6 +35,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
   const [error, setError] = useState("");
   const [showCommentary, setShowCommentary] = useState(true);
   const [veteranFilter, setVeteranFilter] = useState("all");
+  const [dismissedVictoryFor, setDismissedVictoryFor] = useState<string | null>(null);
 
   useEffect(() => {
     setShowCommentary(window.localStorage.getItem("tinolandia-commentary") !== "off");
@@ -172,6 +174,7 @@ export function GeopoliticsGameboard({ gameId }: { gameId: string }) {
         </aside>
       </div>
       {game.status === "ACTIVE" && isParticipant && <TacticalTipGuide game={game} gameId={gameId} player={myPlayer} />}
+      {game.status === "FINISHED" && myPlayer && game.winnerId === myPlayer.id && dismissedVictoryFor !== gameId && <VictoryCelebration key={gameId} commander={myPlayer.name} nation={game.countries.find((country) => country.code === (game.startingCountries?.[myPlayer.id] ?? game.humanCountry))?.name ?? game.humanCountry} onClose={() => setDismissedVictoryFor(gameId)} />}
     </div>
   );
 }
