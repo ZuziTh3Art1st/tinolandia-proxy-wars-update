@@ -18,6 +18,7 @@ const GROUPS: Record<string, string> = {
   Europe: "AL AD AT BY BE BA BG HR CY CZ DK EE FI FR DE GR HU IS IE IT XK LV LI LT LU MT MD MC ME NL MK NO PL PT RO RU SM RS SK SI ES SE CH UA GB VA",
   Asia: "AF AM AZ BH BD BT BN KH CN GE IN ID IR IQ IL JP JO KZ KW KG LA LB MY MV MN MM NP KP KR OM PK PS PH QA SA SG LK SY TW TJ TH TL TR TM AE UZ VN YE",
   Oceania: "AS AU CK FJ FM GU KI MH MP NC NF NR NU NZ PG PW SB TK TO TV VU WF WS",
+  Americas: "AG AR BB BS BZ BO BR CA CL CO CR CU DM DO EC SV GD GT GY HT HN JM MX NI PA PY PE KN LC VC SR TT US UY VE",
 };
 
 const ANCHORS: Record<string, Point[]> = {
@@ -25,6 +26,7 @@ const ANCHORS: Record<string, Point[]> = {
   Europe: [[-3,54],[10,58],[12,49],[22,45],[28,54],[35,39],[42,47],[4,42],[20,62],[30,48]],
   Asia: [[44,34],[58,25],[70,40],[78,23],[90,28],[103,35],[108,15],[119,25],[135,37],[145,50],[95,5]],
   Oceania: [[134,-25],[147,-7],[172,-41],[159,-8],[178,-18],[115,-32]],
+  Americas: [[-99,39],[-75,4],[-60,-15],[-100,20],[-77,-10],[-70,-35],[-110,55],[-80,25],[-90,15],[-55,-10],[-66,18]],
 };
 
 function hash(code: string) {
@@ -37,9 +39,9 @@ function coordinate(country: GameState["countries"][number]): Point {
     return [lon, lat];
   }
   const group = Object.entries(GROUPS).find(([, codes]) => codes.split(" ").includes(country.code))?.[0] ?? "Americas";
-  const points = ANCHORS[group];
+  const points = ANCHORS[group] ?? ANCHORS.Americas;
   const seed = hash(country.code);
-  const base = points[seed % points.length];
+  const base = points[seed % points.length] ?? [0, 0];
   const jx = ((seed >>> 5) % 9 - 4) * 0.6;
   const jy = ((seed >>> 9) % 9 - 4) * 0.45;
   return [base[0] + jx, base[1] + jy];
