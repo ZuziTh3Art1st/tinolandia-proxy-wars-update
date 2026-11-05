@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import MurmurationWordmark from "@/components/MurmurationWordmark";
 
 export function VictoryCelebration({ nation, commander, mode = "victory", onClose }: { nation?: string; commander?: string; mode?: "victory" | "tutorial"; onClose: () => void }) {
@@ -33,7 +34,10 @@ export function VictoryCelebration({ nation, commander, mode = "victory", onClos
             <p className="text-[10px] font-bold uppercase tracking-[.28em] text-[#e9c779]">{tutorial ? "TUTORIAL · COMPLETE" : "WORLD CAMPAIGN · VICTORY"}</p>
             <h1 id="victory-celebration-title" className="mt-2 font-serif text-2xl sm:text-3xl">{tutorial ? "Field training complete." : `The world is yours, ${commander ?? "Commander"}.`}</h1>
             <p className="mt-2 text-sm text-white/75">{tutorial ? "You reinforced, weighed the odds, fought a battle and secured a new border. You are ready to command." : `${nation ?? "Your nation"} secured the final territory. The campaign is complete.`}</p>
-            {canClose ? <button type="button" data-interactive onClick={onClose} className="mt-5 min-h-11 rounded-full bg-[#e9c779] px-6 py-2.5 text-sm font-bold text-[#17202b] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#f5d995]">Close celebration</button> : <p className="mt-5 text-xs text-white/65">Victory celebration · close will be available after 30 seconds</p>}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/" data-interactive className="min-h-11 rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">Leave now</Link>
+              {canClose ? <button type="button" data-interactive onClick={onClose} className="min-h-11 rounded-full bg-[#e9c779] px-6 py-2.5 text-sm font-bold text-[#17202b] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#f5d995]">Close celebration</button> : <p className="text-xs text-white/65">Close celebration becomes available after 30 seconds</p>}
+            </div>
           </section>
         </div>
       </MurmurationWordmark>
